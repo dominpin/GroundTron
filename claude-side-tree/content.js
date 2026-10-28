@@ -234,6 +234,38 @@
     return rootNode;
   }
 
+  // The last place in the transcript that names this file, preferring a tool
+  // call such as "Edit(path)" over a plain mention. Paths are compared with
+  // forward slashes, the way the tree stores them.
+  function lastPlaceOf(path) {
+    const walker = document.createTreeWalker(root(), NodeFilter.SHOW_TEXT);
+    let call = null;
+    let any = null;
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const el0 = n.parentElement;
+      if (!el0 || el0.closest('#cst-root')) continue;
+      const text = n.nodeValue.replace(/\\/g, '/');
+      if (!text.includes(path)) continue;
+      any = el0;
+      CALL_RE.lastIndex = 0;
+      let m;
+      while ((m = CALL_RE.exec(text)) !== null) {
+        if (m[2].replace(/\\/g, '/').includes(path)) { call = el0; break; }
+      }
+    }
+    return call || any;
+  }
+
+  function jumpTo(path) {
+    const target = lastPlaceOf(path);
+    if (!target) return;
+    target.scrollIntoView({ block: 'center' });
+    target.classList.remove('cst-jump');
+    void target.offsetWidth;
+    target.classList.add('cst-jump');
+    setTimeout(() => target.classList.remove('cst-jump'), 2000);
+  }
+
   function rowsOf(node, depth, out) {
     for (const dir of [...node.dirs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
       out.push({ kind: 'dir', name: dir.name, depth });
@@ -288,7 +320,7 @@
             el('span', { class: 'cst-name', text: row.name }),
           ]));
         } else {
-          const r = el('div', { class: 'cst-row cst-file', style: `padding-left:${6 + row.depth * 12}px`, title: row.path }, [
+          const r = el('div', { class: 'cst-row cst-file', style: `padding-left:${6 + row.depth * 12}px`, title: row.path, onclick: () => jumpTo(row.path) }, [
             el('span', { class: 'cst-glyph' }),
             el('span', { class: 'cst-name', text: row.name }),
             el('span', { class: 'cst-badge' }),

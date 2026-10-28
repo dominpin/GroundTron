@@ -322,3 +322,11 @@
   cursor: help;
 }
 #cst-root .cst-principle b { color: var(--cst-fg); font-weight: 600; }
+
+/* A file row jumps to its last mention in the conversation, which flashes. */
+#cst-root .cst-file { cursor: pointer; }
+.cst-jump { animation: cst-jump 2s ease-out; border-radius: 4px; }
+@keyframes cst-jump {
+  0%, 60% { background: rgba(217, 119, 87, 0.35); box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.35); }
+  100% { background: transparent; box-shadow: 0 0 0 3px transparent; }
+}
