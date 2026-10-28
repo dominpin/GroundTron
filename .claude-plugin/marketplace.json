@@ -1,5 +1,5 @@
 {
-  "name": "my-mods",
+  "name": "groundtron",
   "owner": { "name": "bqsik" },
   "plugins": [
     { "name": "cc-combo", "source": "./cc-combo", "description": "savvy-progress + filetree + cache-tax + blast-radius" }

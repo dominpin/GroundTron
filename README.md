@@ -4,7 +4,7 @@ Dwie rzeczy w tym samym wyglądzie: mod do Claude Code i rozszerzenie do przegl�
 
 ## cc-combo (mod do Claude Code)
 
-Plugin marketplace (`my-mods`) z jednym modem, **cc-combo**: savvy-progress, filetree,
+Plugin marketplace (`groundtron`) z jednym modem, **cc-combo**: savvy-progress, filetree,
 cache-tax i blast-radius w jednej wtyczce ze wspólną paletą. Pasek postępu nad promptem
 jest w stylu paska z Windows 7, a skill `task-progress` włącza go przy każdym zadaniu
 z co najmniej trzema krokami.
@@ -14,7 +14,7 @@ Potrzebny Claude Code 2.1.287 lub nowszy (`claude update`). W Claude Code:
 
 ```
 /plugin marketplace add dominpin/GroundTron
-/plugin install cc-combo@my-mods
+/plugin install cc-combo@groundtron
 ```
 
 Wybierz zakres **user**, żeby ładował się w każdej sesji.
