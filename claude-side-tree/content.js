@@ -3,7 +3,7 @@
 //  - the files this conversation touched, as a tree, flashing when Claude
 //    reads, writes or edits one,
 //  - how long the thread has been idle and roughly how big it is,
-//  - the prompt checklist from Anthropic's own prompting pages.
+//  - hints for writing a prompt, from Anthropic's own prompting pages.
 //
 // Everything is read from the page that is already on screen. Nothing is sent
 // anywhere, and the only thing stored is this panel's own state, under keys
@@ -37,9 +37,9 @@
   let lastActivity = Date.now();
   let chars = 0;
   let convoKey = location.pathname;
-  let tab = load('tab', 'files');
   let collapsed = load('collapsed', '0') === '1';
   const showMentions = true; // mentions are always shown
+  let tab = load('tab', 'files');
   let follow = load('follow', '1') === '1';
   let closedDirs = new Set((() => { try { return JSON.parse(load('closed', '[]')); } catch { return []; } })());
   let width = Math.min(460, Math.max(220, parseInt(load('width', '300'), 10) || 300));
@@ -171,19 +171,14 @@
   function build() {
     const rootEl = el('div', { id: 'cst-root' });
     const tabBtn = el('button', { class: 'cst-tab', title: 'Claude Side Tree', onclick: () => setCollapsed(false) }, [el('span', { text: '◧' })]);
-    const header = el('header', { class: 'cst-head' }, [
-      el('span', { class: 'cst-logo', text: '◧' }),
-      el('span', { class: 'cst-title', text: 'Side Tree' }),
-      el('button', { class: 'cst-x', title: 'Zwin panel', onclick: () => setCollapsed(true), text: '×' }),
-    ]);
     const meter = el('div', { class: 'cst-meter' });
     const tabs = el('nav', { class: 'cst-tabs' }, [
       el('button', { class: 'cst-tabbtn', 'data-tab': 'files', text: 'Pliki', onclick: () => setTab('files') }),
-      el('button', { class: 'cst-tabbtn', 'data-tab': 'prompt', text: 'Prompt', onclick: () => setTab('prompt') }),
+      el('button', { class: 'cst-tabbtn', 'data-tab': 'prompt', text: 'Podpowiedzi', onclick: () => setTab('prompt') }),
     ]);
     const body = el('div', { class: 'cst-body' });
     const grip = el('div', { class: 'cst-grip', title: 'Przeciagnij, by zmienic szerokosc' });
-    const panel = el('aside', { class: 'cst-panel' }, [grip, header, meter, tabs, body]);
+    const panel = el('aside', { class: 'cst-panel' }, [grip, meter, tabs, body]);
     rootEl.appendChild(tabBtn);
     rootEl.appendChild(panel);
     document.body.appendChild(rootEl);
@@ -419,6 +414,7 @@
     meter.appendChild(el('span', { class: 'cst-dot', 'data-tone': state[1], text: '●' }));
     meter.appendChild(el('span', { class: 'cst-m-main', text: `watek ≈ ${tok > 1000 ? Math.round(tok / 1000) + 'k' : tok} tok` }));
     meter.appendChild(el('span', { class: 'cst-m-sub', text: `bezczynnosc ${fmtDur(idle)} · ${state[0]}` }));
+    meter.appendChild(el('button', { class: 'cst-x', title: 'Zwin panel', text: '×', onclick: e => { e.stopPropagation(); setCollapsed(true); } }));
     const tp = taskProgress();
     if (tp) {
       const pct = Math.round((tp.done / tp.total) * 100);
@@ -432,6 +428,10 @@
   }
 
   // --- the prompt tab ------------------------------------------------------
+  // Write the prompt in the message box as usual. Each row below says what a
+  // good prompt tends to contain and goes grey-to-green when your draft has it.
+  // A row that is still missing shows why it helps, and a click puts an example
+  // into the box. The ticks are guesses from your words, not a verdict.
 
   function composer() {
     const nodes = [...document.querySelectorAll('div[contenteditable="true"], textarea')];
@@ -461,44 +461,56 @@
     return 'skopiowane';
   }
 
+  function flashDone(node, how) {
+    node.setAttribute('data-done', how);
+    setTimeout(() => node.removeAttribute('data-done'), 1600);
+  }
+
   let promptBoxes = null;
 
   function renderPrompt(body) {
     if (!promptBoxes) {
       body.textContent = '';
+      body.appendChild(el('p', { class: 'cst-lead', text: 'Pisz prompt w polu wiadomosci. Tutaj widac, czego jeszcze w nim brakuje.' }));
       const checks = el('div', { class: 'cst-checks' });
       const rows = new Map();
       for (const p of CST_DOCS.patterns) {
-        const r = el('div', { class: 'cst-check', title: p.hint + '\n\nPrzyklad: ' + p.example }, [
+        const r = el('button', { class: 'cst-check', title: 'Kliknij, by wstawic przyklad do pola', onclick: ev => {
+          if (r.classList.contains('cst-ok')) return;
+          flashDone(r, insertPrompt(p.example));
+        } }, [
           el('span', { class: 'cst-tick', text: '○' }),
-          el('span', { class: 'cst-check-label', text: p.label }),
+          el('span', { class: 'cst-check-text' }, [
+            el('span', { class: 'cst-check-label', text: p.label }),
+            el('span', { class: 'cst-check-hint', text: p.hint }),
+          ]),
         ]);
         rows.set(p.id, r);
         checks.appendChild(r);
       }
-      const note = el('p', { class: 'cst-note', text: 'Podpowiedzi liczone ze slow w polu wpisywania. To wskazowki z dokumentacji, nie ocena promptu.' });
+      body.appendChild(checks);
+      body.appendChild(el('p', { class: 'cst-note', text: 'Odhaczenia licze ze slow w Twoim tekscie, wiec to podpowiedz, a nie ocena.' }));
+
       const starters = el('div', { class: 'cst-starters' });
-      starters.appendChild(el('h4', { text: 'Na poczatek' }));
+      starters.appendChild(el('h4', { text: 'Gotowe prompty' }));
+      starters.appendChild(el('p', { class: 'cst-note', text: 'Kliknij, a trafi do pola wiadomosci.' }));
       for (const s of CST_DOCS.starters) {
         starters.appendChild(el('button', {
           class: 'cst-starter', title: s.text,
-          onclick: ev => { const how = insertPrompt(s.text); ev.currentTarget.setAttribute('data-done', how); setTimeout(() => ev.currentTarget.removeAttribute('data-done'), 1600); },
+          onclick: ev => flashDone(ev.currentTarget, insertPrompt(s.text)),
         }, [el('span', { text: s.label })]));
       }
-      const pr = el('div', { class: 'cst-principles' }, [el('h4', { text: 'Zasady' })]);
-      for (const [t, d] of CST_DOCS.principles) {
-        pr.appendChild(el('div', { class: 'cst-principle', title: d }, [
-          el('b', { text: t }), el('span', { text: ' ' + d }),
-        ]));
-      }
-      body.appendChild(checks);
-      body.appendChild(note);
       body.appendChild(starters);
+
+      const pr = el('details', { class: 'cst-principles' }, [el('summary', { text: 'Zasady z dokumentacji' })]);
+      for (const [t, d] of CST_DOCS.principles) {
+        pr.appendChild(el('div', { class: 'cst-principle' }, [el('b', { text: t }), el('span', { text: ' ' + d })]));
+      }
       body.appendChild(pr);
       promptBoxes = rows;
     }
     // The checks are written without Polish diacritics, so the draft is
-    // stripped of them before testing: "tabeli" and "tabeli" count alike.
+    // stripped of them before testing.
     const draft = draftText()
       .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/ł/g, 'l').replace(/Ł/g, 'L');
@@ -510,7 +522,6 @@
       row.querySelector('.cst-tick').textContent = ok ? '●' : '○';
     }
   }
-
   // --- painting ------------------------------------------------------------
 
   let painting = 0;
@@ -593,7 +604,7 @@
     }, 1000);
     // The size estimate drifts as text streams in; re-measure now and then.
     setInterval(() => { chars = (root().textContent || '').length; }, 20000);
-    // Checklist ticks while you type.
+    // The checklist ticks while you type.
     document.addEventListener('input', () => { if (tab === 'prompt' && !collapsed) paint(); }, true);
   }
 

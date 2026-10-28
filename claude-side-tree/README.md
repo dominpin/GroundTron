@@ -26,13 +26,13 @@ zimne). To **szacunki liczone z tego, co widać na stronie**. Rozszerzenie nie w
 prawdziwego cache ani prawdziwej liczby tokenów, więc nie pokazuje kosztów w złotówkach
 ani dolarach i niczego nie wysyła, żeby cache podtrzymać.
 
-**Prompt** — ściągawka z trzech stron Anthropica (Prompt engineering overview,
-Prompting best practices, Prompt library). Sześć wzorców odhacza się samo na
-podstawie tego, co masz wpisane w polu wiadomości: czy opisujesz wynik, czy dajesz
-sposób weryfikacji, czy wskazujesz punkt odniesienia, czy podajesz mierzalny cel,
-czy dołączasz artefakt i czy mówisz, jak ma wyglądać odpowiedź. Pod spodem pięć
-promptów na start (klik wstawia je do pola) i sześć zasad z dokumentacji.
-Odhaczenia liczone są ze słów, więc to wskazówka, nie ocena promptu.
+**Podpowiedzi** — zakładka do pisania promptów, oparta na trzech stronach Anthropica
+(Prompt engineering overview, Prompting best practices, Prompt library). Piszesz prompt w polu
+wiadomości, a sześć wzorców odhacza się samo na podstawie słów: czy opisujesz wynik, czy dajesz
+sposób weryfikacji, punkt odniesienia, mierzalny cel, artefakt i format odpowiedzi. Wzorzec,
+którego brakuje, pokazuje, po co jest, a kliknięcie wstawia przykład do pola. Pod spodem są
+pięć gotowych promptów (klik wstawia je do pola) i zasady z dokumentacji. Odhaczenia liczone
+są ze słów, więc to wskazówka, nie ocena promptu.
 
 ## Instalacja
 
