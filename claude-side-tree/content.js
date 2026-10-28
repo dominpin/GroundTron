@@ -331,14 +331,17 @@
           const closed = closedDirs.has(row.key);
           if (closed) hideBelow = row.depth;
           tree.appendChild(el('div', {
-            class: 'cst-row cst-dir', style: `padding-left:${6 + row.depth * 12}px`, title: closed ? 'Rozwin' : 'Zwin',
-            onclick: () => {
-              if (closedDirs.has(row.key)) closedDirs.delete(row.key); else closedDirs.add(row.key);
-              save('closed', JSON.stringify([...closedDirs]));
-              paint();
-            },
+            class: 'cst-row cst-dir', style: `padding-left:${6 + row.depth * 12}px`,
           }, [
-            el('span', { class: 'cst-glyph', text: closed ? '▸' : '▾' }),
+            // Only the triangle folds and unfolds the folder.
+            el('span', {
+              class: 'cst-glyph cst-fold', text: closed ? '▸' : '▾', title: closed ? 'Rozwin' : 'Zwin',
+              onclick: () => {
+                if (closedDirs.has(row.key)) closedDirs.delete(row.key); else closedDirs.add(row.key);
+                save('closed', JSON.stringify([...closedDirs]));
+                paint();
+              },
+            }),
             el('span', { class: 'cst-name', text: row.name }),
           ]));
         } else {
