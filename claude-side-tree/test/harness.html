@@ -30,9 +30,17 @@
   <button onclick="add('Read(src/app/util/paths.ts)')">+ Read paths.ts</button>
   <button onclick="add('Edit(src/app/util/validate.ts)')">+ Edit validate.ts</button>
   <button onclick="add('Write(docs/notes/plan.md)')">+ Write plan.md</button>
+  <button onclick="tasks(1)">+ lista zadan 1/4</button>
+  <button onclick="tasks(3)">lista zadan 3/4</button>
   <button onclick="document.querySelector('#composer').innerText='dodaj limitowanie zapytan do @src/app/main.ts, zejdz ponizej 200KB, uruchom testy i pokaz wynik w tabeli'">wypelnij prompt</button>
 </div>
 <script>
+function tasks(n) {
+  const names = ['Przeczytaj kod', 'Napisz poprawke', 'Uruchom testy', 'Opisz zmiany'];
+  let box = document.getElementById('tasks');
+  if (!box) { box = document.createElement('div'); box.id = 'tasks'; box.className = 'msg'; document.getElementById('stream').appendChild(box); }
+  box.innerHTML = names.map((t, i) => '<div>' + (i < n ? '☑ ' : '☐ ') + t + '</div>').join('');
+}
 function add(text) {
   const d = document.createElement('div');
   d.className = 'msg';

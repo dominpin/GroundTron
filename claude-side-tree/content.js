@@ -256,7 +256,20 @@
       body.textContent = '';
       const bar = el('div', { class: 'cst-opts' }, [
         optBtn('wzmianki', showMentions, () => { showMentions = !showMentions; save('mentions', showMentions ? '1' : '0'); if (showMentions) fullScan(); paint(); }),
-        optBtn('podazaj', follow, () => { follow = !follow; save('follow', follow ? '1' : '0'); paint(); }),
+        optBtn('podazaj', follow, (e) => {
+          follow = !follow;
+          save('follow', follow ? '1' : '0');
+          // The bar is only rebuilt when the file list changes, so flip the look here.
+          e.currentTarget.classList.toggle('cst-on', follow);
+          if (follow) {
+            let last = null;
+            for (const f of files.values()) {
+              const r = rowEls.get(f.path);
+              if (r && f.lastTs && (!last || f.lastTs > last.ts)) last = { ts: f.lastTs, row: r };
+            }
+            if (last) last.row.scrollIntoView({ block: 'center' });
+          }
+        }),
         el('span', { class: 'cst-count', text: paths.length ? `${paths.length} plik(ow)` : '' }),
       ]);
       body.appendChild(bar);
@@ -326,6 +339,29 @@
     return `${h}h${String(m % 60).padStart(2, '0')}`;
   }
 
+  // The last checklist in the transcript: "- [x] a", "☑ a", "✓ a" are done and
+  // "- [ ] a", "☐ a" are open. Only what is written on the page counts, so a
+  // thread without such a list shows no bar rather than an invented percent.
+  const TASK_LINE = /^\s*(?:[-*]\s*)?(\[[xX ]\]|[☑✔✓✅☒☐□◻⬜])\s+\S/;
+  const TASK_DONE = /^\s*(?:[-*]\s*)?(\[[xX]\]|[☑✔✓✅☒])/;
+  let taskCache = { at: 0, value: null };
+
+  function taskProgress() {
+    const now = Date.now();
+    if (now - taskCache.at < 1500) return taskCache.value;
+    const lines = (root().innerText || '').split('\n');
+    let run = [];
+    let last = [];
+    for (const line of lines) {
+      if (TASK_LINE.test(line)) run.push(TASK_DONE.test(line));
+      else if (line.trim() !== '') { if (run.length) last = run; run = []; }
+    }
+    if (run.length) last = run;
+    const value = last.length >= 2 ? { done: last.filter(Boolean).length, total: last.length } : null;
+    taskCache = { at: now, value };
+    return value;
+  }
+
   function renderMeter(meter) {
     const idle = Date.now() - lastActivity;
     const tok = Math.round(chars / 3.8);
@@ -335,6 +371,16 @@
     meter.appendChild(el('span', { class: 'cst-dot', 'data-tone': state[1], text: '●' }));
     meter.appendChild(el('span', { class: 'cst-m-main', text: `watek ≈ ${tok > 1000 ? Math.round(tok / 1000) + 'k' : tok} tok` }));
     meter.appendChild(el('span', { class: 'cst-m-sub', text: `bezczynnosc ${fmtDur(idle)} · ${state[0]}` }));
+    const tp = taskProgress();
+    if (tp) {
+      const pct = Math.round((tp.done / tp.total) * 100);
+      const bar = el('span', { class: 'cst-prog', title: 'Z ostatniej listy zadan widocznej w rozmowie (pola [x] / [ ], ☑ / ☐).' }, [
+        el('span', { class: 'cst-prog-track' }, [el('span', { class: 'cst-prog-fill', style: `width:${pct}%` })]),
+      ]);
+      bar.title = `${tp.done}/${tp.total} · ${pct}%`;
+      bar.setAttribute('data-done', tp.done === tp.total ? '1' : '0');
+      meter.appendChild(bar);
+    }
   }
 
   // --- the prompt tab ------------------------------------------------------
