@@ -1,0 +1,78 @@
+{
+  "name": "cc-combo",
+  "version": "0.1.0",
+  "description": "Four mods in one: savvy-progress (progress bar + /agents-info panel), filetree (IDE-style file tree, /filetree), cache-tax (/keepwarm, /cache-tax: keeps the prompt cache warm, guards cold sends; warming costs tokens) and blast-radius (holds risky Bash commands with Proceed/Cancel).",
+  "types": "./types/index.d.ts",
+  "keywords": ["mod", "pane", "file-tree", "git", "cache", "safety", "progress"],
+  "license": "MIT AND Apache-2.0",
+  "userConfig": {
+    "language": {
+      "type": "string",
+      "title": "Agents panel: language",
+      "description": "savvy-progress: auto follows Claude Code's language setting, then the system locale; en, ru or he (Hebrew, drawn right to left)",
+      "default": "auto",
+      "options": ["auto", "en", "ru", "he"]
+    },
+    "autoOpen": {
+      "type": "string",
+      "title": "Agents panel: open on",
+      "description": "savvy-progress: savvy = when a savvy-flow worker starts or a plan is reported; any = also when any other subagent starts",
+      "default": "savvy",
+      "options": ["savvy", "any"]
+    },
+    "activity": {
+      "type": "string",
+      "title": "File tree: Claude activity",
+      "description": "filetree: which of Claude's file activity shimmers in the tree: reads in purple, writes in orange, git actions in green",
+      "default": "reads and writes",
+      "options": ["reads and writes", "writes", "reads", "none"]
+    },
+    "glyphs": {
+      "type": "string",
+      "title": "File tree: glyphs",
+      "description": "filetree: auto uses Nerd Font icons when one is installed here, except in the desktop app; plain uses Unicode only",
+      "default": "auto",
+      "options": ["auto", "nerd", "plain"]
+    },
+    "follow": {
+      "type": "string",
+      "title": "File tree: follow Claude",
+      "description": "filetree: on = the tree scrolls to what Claude reads, writes or commits; off = the view stays where you put it",
+      "default": "on",
+      "options": ["on", "off"]
+    },
+    "start": {
+      "type": "string",
+      "title": "File tree: open at start",
+      "description": "filetree: on = the pane opens when a session starts; off = it stays closed until you run /filetree",
+      "default": "on",
+      "options": ["on", "off"]
+    },
+    "column": {
+      "type": "string",
+      "title": "File tree: right column",
+      "description": "filetree: date (last modified), age (time since last modified) or size",
+      "default": "date",
+      "options": ["date", "age", "size"]
+    },
+    "hints": {
+      "type": "string",
+      "title": "File tree: hints",
+      "description": "filetree: on = outside a git repo, a line under the header says git status starts after git init",
+      "default": "on",
+      "options": ["on", "off"]
+    },
+    "open": {
+      "type": "string",
+      "title": "File tree: open with",
+      "description": "filetree: what double-click or Enter does with a file. Empty = the default app; editor = $VISUAL/$EDITOR; preview = show it in the pane; anything else is a command, {path} the file and {dir} its folder",
+      "default": ""
+    },
+    "edit": {
+      "type": "string",
+      "title": "File tree: edit with",
+      "description": "filetree: what e does in the preview. Empty = $VISUAL/$EDITOR; or a command where {line} is the line, e.g. code -g {path}:{line}",
+      "default": ""
+    }
+  }
+}
