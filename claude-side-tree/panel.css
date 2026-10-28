@@ -329,3 +329,17 @@
   0%, 60% { background: rgba(217, 119, 87, 0.35); box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.35); }
   100% { background: transparent; box-shadow: 0 0 0 3px transparent; }
 }
+
+/* Language picker, at the right end of the tab row. */
+#cst-root .cst-lang {
+  margin: 0 0 4px auto;
+  align-self: center;
+  max-width: 96px;
+  padding: 2px 4px;
+  font-size: 11px;
+  color: var(--cst-muted);
+  background: var(--cst-row);
+  border: 1px solid var(--cst-line);
+  border-radius: 5px;
+  cursor: pointer;
+}

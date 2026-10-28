@@ -1,0 +1,38 @@
+// Gôrolsko: a first pass that wants a native speaker's review.
+CST_I18N.gor = {
+  tabFiles: 'Pliki', tabHints: 'Porady', lang: 'Godka',
+  grip: 'Przeciągnij, coby zmienić szyrokość',
+  count: n => `${n} plików`,
+  empty: 'Jesce nic ni ma. Drzewko sie zapełni, jak w rozmowie bedzie wywołanie na pliku, na przykład Edit(src/app.ts).',
+  fresh: 'świyże', maybe: 'mozno byc zimne', cold: 'chyba zimne',
+  thread: k => `wątek ≈ ${k} tok`, idle: d => `postój ${d}`,
+  meterTitle: 'Ino rachunek na oko z tego, co widać na stronie: wielkość wątku z długości tekstu, a stan cache ino z casu postoju. Rozsyrzynie nie widzi prawdziwego cache ani prawdziwyj liby tokenów.',
+  close: 'Zwiń panel',
+  progTitle: 'Z ostatnij listy zadań widoconyj w rozmowie ([x] / [ ], ☑ / ☐).',
+  fold: 'Zwiń', unfold: 'Rozwiń',
+  read: 'cytany', edit: 'poprawiany', write: 'zrobiony', mention: 'wspomnioany',
+  lead: 'Piś prompt w polu na wiadomość. Hań widać, cego jesce w nim brakuje.',
+  checkTitle: 'Kliknij, coby wstawić przykład do pola',
+  note: 'Ptaśki licymy ze słów w Twoim tekście, to ino porada, nie ocena.',
+  startersH: 'Gotowe prompty', startersNote: 'Kliknij, a idzie do pola na wiadomość.',
+  principlesH: 'Zasady z dokumentacji',
+  inserted: 'wstawione', copied: 'skopiowane',
+  patterns: {
+    outcome: ['Powiedz, co ma być, nie jak', 'Powiedz, co ma powstać, i niech Claude sam pliki znajdzie. Jedno zdanie to casem za mało.', 'dodoj ograniczenie zapytań do publicznego API i dopilnuj, coby testy dalej przechodziyły'],
+    verify: ['Dej sposób, coby to sprawdzić', 'Poproś, coby to uruchomił, przetestowoł abo porównoł w tym samym prompcie, coby Claude sam sie poprawiał.', 'napiś migracje, uruchom ją na bazie dev i potwierdź, ze schemat sie zgadza'],
+    reference: ['Pokoz, na cym sie wzorować', 'Powiedz, jaki plik, test abo wzór juz je, coby nowy kod do reszty pasował. Plik pokozesz przez @.', 'dodoj strone ustawień tak jak strona profilu'],
+    target: ['Podoj cel, co idzie zmierzyć', 'Przy wydajności abo pokryciu podoj liczbe i próg, coby było wiadomo, kie to gotowe.', 'zejdź z wielkościom bundle pod 200KB i pokoz, cosik wyrzucił'],
+    artifact: ['Dołącz artefakt', 'Wklej błąd, log, zrzut ekranu abo pokoz plik przez @. Claude cyto źródło, nie Twoje gadanie o źródle.', 'cemu build sie sypie? @build.log'],
+    format: ['Powiedz, jako ma być odpowiedź', 'Powiedz, jaki format, jako długo abo dlo kogo, coby odpowiedź pasowała do tego, jak jom użyjesz.', 'wytłumacz logike ponawiania płatności jako strone HTML z diagramem, potem otwórz jom w przeglądarce'],
+  },
+  starters: ['Poznoj repozytorium', 'Znojdź, hań sie cosi dzieje', 'Naprow test, co sie wywala', 'Napiś testy i je uruchom', 'Prejźrzyj zmiany przed commitem'],
+  principles: [
+    ['Bądź konkretny', 'Pokoz prompt komuś, co nic nie wie. Jak sie zgubi, to i Claude sie zgubi.'],
+    ['Powiedz, cemu', 'Wytłumacz, cemu cosik chces. „Nigdy nie używoj wielokropka" robi gorzej niz to samo z powodem.'],
+    ['Dowoj przykłady', 'Od 3 do 5 przykładów, roznych, kozdy w znacnikach <example>.'],
+    ['Używoj znacników XML', 'Rozdziel instrukcje, kontekst i dane: <instructions>, <context>, <input>.'],
+    ['Długie dane na wirchu', 'Przy wielkich wejściach (20k+ tokenów) pirwej dokumenty, pytanie na końcu.'],
+    ['Dej rolę', 'Jedno zdanie roli w systemowym prompcie zmienio ton i zakres odpowiedzi.'],
+  ],
+};
+CST_LANG_NAMES.gor = 'Gôrolsko';

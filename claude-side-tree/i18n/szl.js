@@ -1,0 +1,38 @@
+// Ślōnski: a first pass that wants a native speaker's review.
+CST_I18N.szl = {
+  tabFiles: 'Pliki', tabHints: 'Wskazōwki', lang: 'Godka',
+  grip: 'Ciōng, coby zmiynić szyrokość',
+  count: n => `${n} plik(ōw)`,
+  empty: 'Jeszcze niy ma co widzieć. Drzewko sie zapełnio, jak w rozmowie pojawi sie wywołanie na pliku, na przikłod Edit(src/app.ts).',
+  fresh: 'świyże', maybe: 'mŏże być zimne', cold: 'nojpewniyj zimne',
+  thread: k => `wōntek ≈ ${k} tok`, idle: d => `bezczynność ${d}`,
+  meterTitle: 'Szacunki liczōne z tego, co widać na zajtce: wielkość wōntku z dugości tekstu, a stan cache yno z czasu bezczynności. Rozszyrzynie niy widzi prawdziwego cache ani prawdziwyj liczby tokenōw.',
+  close: 'Zwiń panel',
+  progTitle: 'Ze ostatniyj listy zadań widocznyj w rozmowie ([x] / [ ], ☑ / ☐).',
+  fold: 'Zwiń', unfold: 'Rozwiń',
+  read: 'czytany', edit: 'edytowany', write: 'zrobiōny', mention: 'wspōmniany',
+  lead: 'Piszoj prompt w polu wiadōmości. Tukej widać, czego jeszcze w nim brakuje.',
+  checkTitle: 'Kliknij, coby wstawić przikłod do pola',
+  note: 'Odhaczyniy liczymy ze słōw w Twojim tekście, tōż to je wskazōwka, a niy ocyna.',
+  startersH: 'Gotowe prompty', startersNote: 'Kliknij, a trefi do pola wiadōmości.',
+  principlesH: 'Zasady z dokumyntacyji',
+  inserted: 'wstawiōne', copied: 'skopiowane',
+  patterns: {
+    outcome: ['Pokoż wynik, niy kroki', 'Pedz, co ma być zrobiōne, a pozwōl Claude znojś pliki. Jedno zdanie to zwykle za mało.', 'dodej limitowanie zapytań do publicznego API i dej pozōr, coby testy dalij przechodziyły'],
+    verify: ['Dej sposōb na sprawdzyniy', 'Poproś ô uruchōmiyni, test abo porōwnanie w tym samym prompcie, coby Claude sóm sie poprawiōł.', 'napisz migracyjõ, uruchōm jã na bazie dev i potwierdź, ze schemat sie zgadza'],
+    reference: ['Wskoż punkt ô kery sie ôprzeć', 'Pōmiyń istniejōncy plik, test abo wzōr, coby nowy kod pasowoł do resty. Plik wskożesz bez @.', 'dodej zajtã ustawiyń tak jak zajta profilu'],
+    target: ['Pōdej cel, kery idzie zmierzyć', 'Przi wydajności abo pokryciu pōdej liczbã i prōg, coby było jasne, kej je zrobiōne.', 'zejdź z wielkościōm bundle pod 200KB i pokoż, co żeś wyrzuciōł'],
+    artifact: ['Dołōncz artefakt', 'Wkleij bałōnd, log, zrzut ekranu abo wskoż plik bez @. Claude czyta zdrzōdło zamiast Twojigo ôpisu zdrzōdła.', 'czamu build sie sypie? @build.log'],
+    format: ['Pedz, jak ma wyglōndać ôdpowiydź', 'Pōmiyń format, dugość abo ôdbiorcã, coby ôdpowiydź pasowała do tego, jak jã użyjesz.', 'wytōmacz logikã pōwtōrzaniŏ płatności jako zajtã HTML ze diagramym, potym ôtwōrz jã w przeglōndarce'],
+  },
+  starters: ['Poznej repozytorium', 'Znojdź, kaj sie cosi dzieje', 'Naprow padajōncy test', 'Napisz testy i je uruchōm', 'Przejzdrzij zmiany przed commitym'],
+  principles: [
+    ['Bydź kōnkretny', 'Pokoż prompt kōmusi bez kōntekstu. Jak sie zgubi, to Claude tyż.'],
+    ['Dej pricyna', 'Wytōmacz, czamu cosi chcesz. „Nigdy niy używej wielopunktu" robi gorzij, jak to samo z uzasadniyniym.'],
+    ['Dowej przikłady', 'Ôd 3 do 5 przikładōw, ôd rōżnych strōn, kożdy w znaczkach <example>.'],
+    ['Używej znaczkōw XML', 'Rozdziel instrukcyje, kōntekst i dane: <instructions>, <context>, <input>.'],
+    ['Dugie dane na wiyrchu', 'Przi dużych wejściach (20k+ tokenōw) nojprzōd dokumynty, pytanie na kōńcu.'],
+    ['Przidziel rolã', 'Jedno zdanie roli w systymowym prompcie zmiynio ton i zakres ôdpowiedzi.'],
+  ],
+};
+CST_LANG_NAMES.szl = 'Ślōnski';

@@ -34,6 +34,23 @@ którego brakuje, pokazuje, po co jest, a kliknięcie wstawia przykład do pola.
 pięć gotowych promptów (klik wstawia je do pola) i zasady z dokumentacji. Odhaczenia liczone
 są ze słów, więc to wskazówka, nie ocena promptu.
 
+## Języki
+
+Panel jest po polsku, angielsku, kaszubsku, śląsku i góralsku. Z GitHuba pobierasz tylko jeden język:
+w katalogu [`dist`](../dist) leży po jednym zipie na język. Taka wersja zawiera teksty tylko jednego
+języka i nie pokazuje listy wyboru. Cały folder `claude-side-tree` z repozytorium ma wszystkie pięć
+języków i listę wyboru w prawym rogu paska zakładek (wybór zapamiętuje się w przeglądarce).
+
+| Język | Plik |
+| --- | --- |
+| polski | `claude-side-tree-pl-polski.zip` |
+| English | `claude-side-tree-en-english.zip` |
+| kaszëbsczi | `claude-side-tree-csb-kaszubski.zip` |
+| ślōnski | `claude-side-tree-szl-slaski.zip` |
+| gôrolsko | `claude-side-tree-gor-goralski.zip` |
+
+Rozpakuj zip i wczytaj folder jak w instrukcji niżej. Teksty kaszubskie, śląskie i góralskie to
+staranna pierwsza wersja, bez sprawdzenia przez native speakera; do poprawienia w plikach z katalogu `i18n`, po jednym na język. Zipy buduje `powershell -File tools/build-language-zips.ps1`.
 ## Instalacja
 
 ### Chrome / Brave

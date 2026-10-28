@@ -44,6 +44,31 @@
   let closedDirs = new Set((() => { try { return JSON.parse(load('closed', '[]')); } catch { return []; } })());
   let width = Math.min(460, Math.max(220, parseInt(load('width', '300'), 10) || 300));
 
+  // The languages this build ships: all five in the repo, one in a downloaded
+  // language zip, which then shows no picker.
+  const LANGS = ['pl', 'en', 'csb', 'szl', 'gor'].filter(c => CST_I18N[c]);
+  // The language: the reader's choice, else the build's default, else the browser's.
+  const langOk = v => LANGS.includes(v);
+  let lang = (() => {
+    if (LANGS.length === 1) return LANGS[0];
+    const saved = load('lang', '');
+    if (langOk(saved)) return saved;
+    if (langOk(globalThis.CST_DEFAULT_LANG)) return globalThis.CST_DEFAULT_LANG;
+    return /^pl/i.test(navigator.language || '') && langOk('pl') ? 'pl' : langOk('en') ? 'en' : LANGS[0];
+  })();
+  const t = (k, ...a) => {
+    const v = (CST_I18N[lang] || {})[k] ?? CST_I18N[LANGS[0]][k];
+    return typeof v === 'function' ? v(...a) : v;
+  };
+  function setLang(v) {
+    lang = v;
+    save('lang', v);
+    promptBoxes = null;
+    lastSig = '';
+    if (ui) { ui.body.removeAttribute('data-tab'); ui.body.textContent = ''; }
+    paint();
+  }
+
   function load(k, d) { try { return localStorage.getItem('cst:' + k) ?? d; } catch { return d; } }
   function save(k, v) { try { localStorage.setItem('cst:' + k, String(v)); } catch { /* private mode */ } }
 
@@ -173,17 +198,18 @@
     const tabBtn = el('button', { class: 'cst-tab', title: 'Claude Side Tree', onclick: () => setCollapsed(false) }, [el('span', { text: '◧' })]);
     const meter = el('div', { class: 'cst-meter' });
     const tabs = el('nav', { class: 'cst-tabs' }, [
-      el('button', { class: 'cst-tabbtn', 'data-tab': 'files', text: 'Pliki', onclick: () => setTab('files') }),
-      el('button', { class: 'cst-tabbtn', 'data-tab': 'prompt', text: 'Podpowiedzi', onclick: () => setTab('prompt') }),
+      el('button', { class: 'cst-tabbtn', 'data-tab': 'files', text: '', onclick: () => setTab('files') }),
+      el('button', { class: 'cst-tabbtn', 'data-tab': 'prompt', text: '', onclick: () => setTab('prompt') }),
+      LANGS.length > 1 && el('select', { class: 'cst-lang', onchange: e => setLang(e.currentTarget.value) }, LANGS.map(c => el('option', { value: c, text: CST_LANG_NAMES[c] }))),
     ]);
     const body = el('div', { class: 'cst-body' });
-    const grip = el('div', { class: 'cst-grip', title: 'Przeciagnij, by zmienic szerokosc' });
+    const grip = el('div', { class: 'cst-grip' });
     const panel = el('aside', { class: 'cst-panel' }, [grip, meter, tabs, body]);
     rootEl.appendChild(tabBtn);
     rootEl.appendChild(panel);
     document.body.appendChild(rootEl);
     dragToResize(grip);
-    return { rootEl, panel, meter, body, tabs };
+    return { rootEl, panel, meter, body, tabs, grip };
   }
 
   function dragToResize(grip) {
@@ -277,7 +303,7 @@
   function renderFiles(body) {
     const list = [...files.values()].filter(f => showMentions || f.kind !== 'mention');
     const paths = list.map(f => f.path);
-    const sig = paths.slice().sort().join('|') + '#' + showMentions + '#' + [...closedDirs].sort().join('|');
+    const sig = paths.slice().sort().join('|') + '#' + showMentions + '#' + [...closedDirs].sort().join('|') + '#' + lang;
 
     if (sig !== lastSig) {
       lastSig = sig;
@@ -298,12 +324,12 @@
             if (last) last.row.scrollIntoView({ block: 'center' });
           }
         }),
-        el('span', { class: 'cst-count', text: paths.length ? `${paths.length} plik(ow)` : '' }),
+        el('span', { class: 'cst-count', text: paths.length ? t('count', paths.length) : '' }),
       ]);
       body.appendChild(bar);
 
       if (paths.length === 0) {
-        body.appendChild(el('p', { class: 'cst-empty', text: 'Nic jeszcze nie widac. Drzewko zapelnia sie, gdy w rozmowie pojawi sie wywolanie na pliku, na przyklad Edit(src/app.ts).' }));
+        body.appendChild(el('p', { class: 'cst-empty', text: t('empty') }));
         return;
       }
       const prefix = commonDir(paths);
@@ -321,7 +347,7 @@
           }, [
             // Only the triangle folds and unfolds the folder.
             el('span', {
-              class: 'cst-glyph cst-fold', text: closed ? '▸' : '▾', title: closed ? 'Rozwin' : 'Zwin',
+              class: 'cst-glyph cst-fold', text: closed ? '▸' : '▾', title: closed ? t('unfold') : t('fold'),
               onclick: () => {
                 if (closedDirs.has(row.key)) closedDirs.delete(row.key); else closedDirs.add(row.key);
                 save('closed', JSON.stringify([...closedDirs]));
@@ -354,7 +380,7 @@
       r.setAttribute('data-kind', f.kind);
       r.querySelector('.cst-glyph').textContent = kind.glyph;
       r.querySelector('.cst-badge').textContent = f.count > 1 ? String(f.count) : '';
-      r.title = `${f.path}\n${[...f.kinds].map(k => (KINDS[k] || {}).label || k).join(', ')}`;
+      r.title = `${f.path}\n${[...f.kinds].map(k => t(k)).join(', ')}`;
       if (f.lastTs && seenTs.get(f.path) !== f.lastTs) {
         seenTs.set(f.path, f.lastTs);
         r.classList.remove('cst-flash');
@@ -408,17 +434,17 @@
   function renderMeter(meter) {
     const idle = Date.now() - lastActivity;
     const tok = Math.round(chars / 3.8);
-    const state = idle < 5 * 60e3 ? ['swieze', 'success'] : idle < 60 * 60e3 ? ['moze byc zimne', 'warning'] : ['najpewniej zimne', 'danger'];
+    const state = idle < 5 * 60e3 ? [t('fresh'), 'success'] : idle < 60 * 60e3 ? [t('maybe'), 'warning'] : [t('cold'), 'danger'];
     meter.textContent = '';
-    meter.title = 'Szacunki liczone z tego, co widac na stronie: wielkosc watku z dlugosci tekstu, a stan cache wylacznie z czasu bezczynnosci. Rozszerzenie nie widzi prawdziwego cache ani prawdziwej liczby tokenow.';
+    meter.title = t('meterTitle');
     meter.appendChild(el('span', { class: 'cst-dot', 'data-tone': state[1], text: '●' }));
-    meter.appendChild(el('span', { class: 'cst-m-main', text: `watek ≈ ${tok > 1000 ? Math.round(tok / 1000) + 'k' : tok} tok` }));
-    meter.appendChild(el('span', { class: 'cst-m-sub', text: `bezczynnosc ${fmtDur(idle)} · ${state[0]}` }));
-    meter.appendChild(el('button', { class: 'cst-x', title: 'Zwin panel', text: '×', onclick: e => { e.stopPropagation(); setCollapsed(true); } }));
+    meter.appendChild(el('span', { class: 'cst-m-main', text: t('thread', tok > 1000 ? Math.round(tok / 1000) + 'k' : tok) }));
+    meter.appendChild(el('span', { class: 'cst-m-sub', text: t('idle', fmtDur(idle)) + ' · ' + state[0] }));
+    meter.appendChild(el('button', { class: 'cst-x', title: t('close'), text: '×', onclick: e => { e.stopPropagation(); setCollapsed(true); } }));
     const tp = taskProgress();
     if (tp) {
       const pct = Math.round((tp.done / tp.total) * 100);
-      const bar = el('span', { class: 'cst-prog', title: 'Z ostatniej listy zadan widocznej w rozmowie (pola [x] / [ ], ☑ / ☐).' }, [
+      const bar = el('span', { class: 'cst-prog', title: t('progTitle') }, [
         el('span', { class: 'cst-prog-track' }, [el('span', { class: 'cst-prog-fill', style: `width:${pct}%` })]),
       ]);
       bar.title = `${tp.done}/${tp.total} · ${pct}%`;
@@ -450,15 +476,15 @@
       c.value = c.value ? c.value + '\n' + text : text;
       c.dispatchEvent(new Event('input', { bubbles: true }));
       c.focus();
-      return 'wstawione';
+      return t('inserted');
     }
     if (c) {
       c.focus();
       const ok = document.execCommand && document.execCommand('insertText', false, text);
-      if (ok) return 'wstawione';
+      if (ok) return t('inserted');
     }
     navigator.clipboard?.writeText(text);
-    return 'skopiowane';
+    return t('copied');
   }
 
   function flashDone(node, how) {
@@ -471,40 +497,40 @@
   function renderPrompt(body) {
     if (!promptBoxes) {
       body.textContent = '';
-      body.appendChild(el('p', { class: 'cst-lead', text: 'Pisz prompt w polu wiadomosci. Tutaj widac, czego jeszcze w nim brakuje.' }));
+      body.appendChild(el('p', { class: 'cst-lead', text: t('lead') }));
       const checks = el('div', { class: 'cst-checks' });
       const rows = new Map();
       for (const p of CST_DOCS.patterns) {
-        const r = el('button', { class: 'cst-check', title: 'Kliknij, by wstawic przyklad do pola', onclick: ev => {
+        const r = el('button', { class: 'cst-check', title: t('checkTitle'), onclick: ev => {
           if (r.classList.contains('cst-ok')) return;
-          flashDone(r, insertPrompt(p.example));
+          flashDone(r, insertPrompt(CST_I18N[lang].patterns[p.id][2]));
         } }, [
           el('span', { class: 'cst-tick', text: '○' }),
           el('span', { class: 'cst-check-text' }, [
-            el('span', { class: 'cst-check-label', text: p.label }),
-            el('span', { class: 'cst-check-hint', text: p.hint }),
+            el('span', { class: 'cst-check-label', text: CST_I18N[lang].patterns[p.id][0] }),
+            el('span', { class: 'cst-check-hint', text: CST_I18N[lang].patterns[p.id][1] }),
           ]),
         ]);
         rows.set(p.id, r);
         checks.appendChild(r);
       }
       body.appendChild(checks);
-      body.appendChild(el('p', { class: 'cst-note', text: 'Odhaczenia licze ze slow w Twoim tekscie, wiec to podpowiedz, a nie ocena.' }));
+      body.appendChild(el('p', { class: 'cst-note', text: t('note') }));
 
       const starters = el('div', { class: 'cst-starters' });
-      starters.appendChild(el('h4', { text: 'Gotowe prompty' }));
-      starters.appendChild(el('p', { class: 'cst-note', text: 'Kliknij, a trafi do pola wiadomosci.' }));
-      for (const s of CST_DOCS.starters) {
+      starters.appendChild(el('h4', { text: t('startersH') }));
+      starters.appendChild(el('p', { class: 'cst-note', text: t('startersNote') }));
+      CST_DOCS.starters.forEach((text, i) => {
         starters.appendChild(el('button', {
-          class: 'cst-starter', title: s.text,
-          onclick: ev => flashDone(ev.currentTarget, insertPrompt(s.text)),
-        }, [el('span', { text: s.label })]));
-      }
+          class: 'cst-starter', title: text,
+          onclick: ev => flashDone(ev.currentTarget, insertPrompt(text)),
+        }, [el('span', { text: CST_I18N[lang].starters[i] })]));
+      });
       body.appendChild(starters);
 
-      const pr = el('details', { class: 'cst-principles' }, [el('summary', { text: 'Zasady z dokumentacji' })]);
-      for (const [t, d] of CST_DOCS.principles) {
-        pr.appendChild(el('div', { class: 'cst-principle' }, [el('b', { text: t }), el('span', { text: ' ' + d })]));
+      const pr = el('details', { class: 'cst-principles' }, [el('summary', { text: t('principlesH') })]);
+      for (const [head, d] of CST_I18N[lang].principles) {
+        pr.appendChild(el('div', { class: 'cst-principle' }, [el('b', { text: head }), el('span', { text: ' ' + d })]));
       }
       body.appendChild(pr);
       promptBoxes = rows;
@@ -544,7 +570,17 @@
     ui.rootEl.setAttribute('data-theme', light ? 'light' : 'dark');
     ui.rootEl.setAttribute('data-collapsed', collapsed ? '1' : '0');
     if (collapsed) return;
-    for (const b of ui.tabs.querySelectorAll('.cst-tabbtn')) b.classList.toggle('cst-on', b.getAttribute('data-tab') === tab);
+    for (const b of ui.tabs.querySelectorAll('.cst-tabbtn')) {
+      const which = b.getAttribute('data-tab');
+      b.classList.toggle('cst-on', which === tab);
+      b.textContent = which === 'files' ? t('tabFiles') : t('tabHints');
+    }
+    ui.grip.title = t('grip');
+    const pick = ui.tabs.querySelector('.cst-lang');
+    if (pick) {
+      pick.title = t('lang');
+      if (pick.value !== lang) pick.value = lang;
+    }
     renderMeter(ui.meter);
     if (tab !== ui.body.getAttribute('data-tab')) {
       ui.body.setAttribute('data-tab', tab);

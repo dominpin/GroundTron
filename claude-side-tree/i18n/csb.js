@@ -1,0 +1,38 @@
+// Kaszëbsczi: a first pass that wants a native speaker's review.
+CST_I18N.csb = {
+  tabFiles: 'Plikë', tabHints: 'Pòdpòwiescë', lang: 'Jãzëk',
+  grip: 'Ùcygni, żebë zmienic szérzã',
+  count: n => `${n} plik(ów)`,
+  empty: 'Jesz nick nie je widzec. Drzewò sã zapełnia, czej w rozmòwie pòjawi sã wëwòłanié na pliku, np. Edit(src/app.ts).',
+  fresh: 'swiéżé', maybe: 'mòże bëc zëmné', cold: 'nôwicy zëmné',
+  thread: k => `wątk ≈ ${k} tok`, idle: d => `nieczënnosc ${d}`,
+  meterTitle: 'Szacunczi z tegò, co je widzec na starnie: wiôlgòsc wątkù z dłëgòscë tekstu, a stan cache le z czasu nieczënnoscë. Rozszérzenié nie widzy prôwdzëwégò cache ani prôwdzëwi lëczbë tokenów.',
+  close: 'Zwiń panel',
+  progTitle: 'Z slédnégò lëstu zadaniów widzónégò w rozmòwie ([x] / [ ], ☑ / ☐).',
+  fold: 'Zwiń', unfold: 'Rozwiń',
+  read: 'czëtóny', edit: 'edytowóny', write: 'ùtwòrzony', mention: 'wspòminóny',
+  lead: 'Pisz prompt w pòlu wiadomòscë. Tuwò widac, czegò w nim jesz felëje.',
+  checkTitle: 'Kliknij, żebë wstawic przëmiar do pòla',
+  note: 'Òdhaczeniô lëczã z słów w Twòjim tekscë, tej to je pòdpòwiésc, a nie òcena.',
+  startersH: 'Gòtowé prompte', startersNote: 'Kliknij, a trafi do pòla wiadomòscë.',
+  principlesH: 'Zasadë z dokùmentacji',
+  inserted: 'wstawioné', copied: 'skòpiowóné',
+  patterns: {
+    outcome: ['Òpiszë wińik, nie kroczi', 'Rzeknij, co ma pòwstac, i pòzwól Claude nalezc plikë. Jedno zdanié je rôz za môl.', 'dodôj lëmitowanié zapëtaniów do publicznégò API i ùpewnij sã, że istniejączé testë dali przechôdają'],
+    verify: ['Dôj spòsóbk weryfikacji', 'Pòprosë ò ùruchòmienié, test abò przërównanié w tim samim prômpce, żebë Claude sóm sã pòprawiôł.', 'napiszë migracjã, ùruchòmi ją na baze dev i potwierdzi, że schemat sã zgôdzô'],
+    reference: ['Pòkażë pùnkt òdniesieniô', 'Nazwij istniejący plik, test abò wzorzéc, żebë nowi kòd pasowôł do resztë. Plik pòkażesz przez @.', 'dodôj starnã ùstawieniów tak jak starna profilu'],
+    target: ['Pòdôj mierzalny cél', 'Przë wëdolnoscë abò pòkrëcym pòdôj lëczbã i prôg, żebë bëło jasno, czej je gòtowò.', 'zeńdzë z wiôlgòscą bundle pòd 200KB i pòkażë, co wëdarłeś'],
+    artifact: ['Dołączë artefakt', 'Wklejë felé, log, zrzut ekranu abò pòkażë plik przez @. Claude czëtô zdrój zamiast Twòjégò òpisu zdroju.', 'czemù build sã sëpie? @build.log'],
+    format: ['Rzeknij, jak ma wëzdrzec ùdpòwiésc', 'Nazwij format, dłëgòscã abò òdbiérnika, żebë ùdpòwiésc pasowa do tegò, jak ją ùżëjesz.', 'wëjasni lògikã pòwtôrzaniô płatnoscë jakno starnã HTML z diagramã, pózni òtemkni ją w przezérnikù'],
+  },
+  starters: ['Pòznôj repòzytorium', 'Nôdzë, dze sã cos dzeje', 'Naprawi padającë test', 'Napiszë testë i je ùruchòmi', 'Przezdrzë zmianë przed commitã'],
+  principles: [
+    ['Bądz kònkretny', 'Pòkażë prompt kòmùs bez kòntekstu. Czej sã zgùbi, Claude téż.'],
+    ['Pòdôj przëczënã', 'Wëjasni, czemù czegòs chcesz. „Nigdë nie ùżiwôj wielopùnktu" robi gòrzi, jak to samò z ùzasadnienim.'],
+    ['Dôwôj przëmiarë', 'Òd 3 do 5 przëmiarów, różnorodnëch, kòżdi w znaczkach <example>.'],
+    ['Ùżiwôj znaczków XML', 'Rozdzelë instrukcje, kòntekst i dónë: <instructions>, <context>, <input>.'],
+    ['Dłudżé dónë na górze', 'Przë wiôldżich wchòdach (20k+ tokenów) nôprzód dokùmentë, pëtanié na kuńcu.'],
+    ['Przëdzelë rolã', 'Jedno zdanié rolë w systemòwim prômpce zmieniô tón i zakres ùdpòwiescë.'],
+  ],
+};
+CST_LANG_NAMES.csb = 'Kaszëbsczi';
