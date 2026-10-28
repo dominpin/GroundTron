@@ -14,7 +14,7 @@ widocznych w zapisie rozmowy (`Read(...)`, `Edit(...)`, `Write(...)`, `Update(..
 | `◦` niebieski | czytany |
 | `●` glina | edytowany |
 | `✚` zielony | utworzony |
-| `·` szary | tylko wspomniany (przełącznik **wzmianki**) |
+| `·` szary | tylko wspomniany |
 
 Gdy Claude właśnie otwiera albo zmienia plik, jego wiersz zapala się na kolor
 działania i zostaje z paskiem z boku przez 8 sekund. Przełącznik **podążaj**

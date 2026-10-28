@@ -39,7 +39,7 @@
   let convoKey = location.pathname;
   let tab = load('tab', 'files');
   let collapsed = load('collapsed', '0') === '1';
-  let showMentions = load('mentions', '0') === '1';
+  const showMentions = true; // mentions are always shown
   let follow = load('follow', '1') === '1';
   let closedDirs = new Set((() => { try { return JSON.parse(load('closed', '[]')); } catch { return []; } })());
   let width = Math.min(460, Math.max(220, parseInt(load('width', '300'), 10) || 300));
@@ -289,7 +289,6 @@
       rowEls.clear();
       body.textContent = '';
       const bar = el('div', { class: 'cst-opts' }, [
-        optBtn('wzmianki', showMentions, () => { showMentions = !showMentions; save('mentions', showMentions ? '1' : '0'); if (showMentions) fullScan(); paint(); }),
         optBtn('podazaj', follow, (e) => {
           follow = !follow;
           save('follow', follow ? '1' : '0');
