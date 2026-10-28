@@ -303,14 +303,6 @@
             if (last) last.row.scrollIntoView({ block: 'center' });
           }
         }),
-        optBtn('zwin', false, () => {
-          const dirs = rowsOf(treeOf(paths, commonDir(paths)), 0, []).filter(r => r.kind === 'dir').map(r => r.key);
-          // Any folder open: close them all; all closed: open them all.
-          const anyOpen = dirs.some(k => !closedDirs.has(k));
-          closedDirs = new Set(anyOpen ? dirs : []);
-          save('closed', JSON.stringify([...closedDirs]));
-          paint();
-        }),
         el('span', { class: 'cst-count', text: paths.length ? `${paths.length} plik(ow)` : '' }),
       ]);
       body.appendChild(bar);
