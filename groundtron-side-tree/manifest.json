@@ -9,15 +9,32 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://claude.ai/*"],
-      "js": ["lang-default.js", "i18n/base.js", "i18n/pl.js", "i18n/en.js", "i18n/csb.js", "i18n/szl.js", "i18n/gor.js", "prompts.js", "content.js"],
-      "css": ["panel.css"],
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "lang-default.js",
+        "i18n/base.js",
+        "i18n/pl.js",
+        "i18n/en.js",
+        "i18n/csb.js",
+        "i18n/szl.js",
+        "i18n/gor.js",
+        "prompts.js",
+        "content.js"
+      ],
+      "css": [
+        "panel.css"
+      ],
       "run_at": "document_idle"
     }
   ],
   "browser_specific_settings": {
     "gecko": {
       "id": "groundtron-side-tree@dominpin",
+      "strict_min_version": "128.0"
+    },
+    "gecko_android": {
       "strict_min_version": "128.0"
     }
   }

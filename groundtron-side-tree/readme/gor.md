@@ -61,6 +61,15 @@ dlo Firefoxa, rozsyrzynie robi mimo niego.
 Tymczasowy dodatek zniko po restarcie przeglądarki. Na stałe trza go podpisać na
 `addons.mozilla.org`.
 
+## Firefox na telefonie (Android)
+
+Panel robi tyż w wąskim oknie. Na telefonie zajmuje cało szyrokość ekranu, ma wiynksse guziki
+i na początku je zwiniynty do uchwytu przy prawyj krawynźi; dotknij go, coby otworzyć. Trza Firefoxa
+128 abo nowsego. Z tego, co wiym, Firefox na Androidzie instaluje dodatki ino z `addons.mozilla.org`
+abo z podpisanego pliku `.xpi`, to nie wczytos go jako „rozpakowanego" w Chrome: trza go podpisać
+na AMO. Nie testowołek go na prawdziwym telefonie, ino w oknie szyrokim na 375 px. Dymki z poradami
+potrzebujom myski i na dotykowym ekranie ik nie ma.
+
 ## Prawa
 
 Żodnyk. W `manifest.json` nie ma sekcji `permissions`: rozsyrzynie ino cyto strone

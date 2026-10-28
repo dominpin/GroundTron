@@ -61,6 +61,15 @@ dlŏ Firefoxa, rozszyrzynie dziaułŏ mimo niego.
 Tymczasowy dodatek znika po restarcie przeglōndarki. Na sztyjc trza go podpisać na
 `addons.mozilla.org`.
 
+## Firefox na telefōnie (Android)
+
+Panel dziaułŏ tyż w wōskim ôknie. Na telefōnie zajmuje cołkõ szyrokość ekranu, ma srogsze knefle
+i na zŏczątku je zwiniynty do uchwytu przi prawym brzegu; tknij go, coby ôtewrzić. Trza Firefoxa 128
+abo nowszego. Ze tego, co wiym, Firefox na Androidzie instalowo dodatki yno ze `addons.mozilla.org`
+abo ze podpisanego pliku `.xpi`, tōż niy wczytosz go jako „rozpakowanego" w Chrome: trza go
+podpisać na AMO. Niy testowołech go na prawdziwym telefōnie, yno w ôknie szyroki na 375 px.
+Dymki ze wskazōwkami potrzebujōm myszy i na dotykowym ekranie jich niy ma.
+
 ## Prawa
 
 Żŏdne. W `manifest.json` niy ma sekcyji `permissions`: rozszyrzynie yno czyto zajtã

@@ -343,3 +343,27 @@
   border-radius: 5px;
   cursor: pointer;
 }
+
+/* Phones and other narrow windows (Firefox for Android, for one): the panel
+   takes the width of the screen, touch targets grow, and there is no edge to
+   drag. It starts folded to its handle; see `narrow` in content.js. */
+#cst-root .cst-grip { touch-action: none; }
+@media (max-width: 700px) {
+  #cst-root { font-size: 14px; }
+  #cst-root .cst-panel {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: max(8px, env(safe-area-inset-left));
+    width: auto;
+  }
+  #cst-root .cst-grip { display: none; }
+  #cst-root .cst-tab { padding: 16px 10px; font-size: 18px; }
+  #cst-root .cst-meter .cst-x { font-size: 24px; min-width: 40px; min-height: 40px; opacity: 0.9; }
+  #cst-root .cst-tabbtn { padding: 10px 14px; }
+  #cst-root .cst-lang { padding: 8px 6px; font-size: 13px; max-width: 120px; }
+  #cst-root .cst-opt { padding: 8px 12px; }
+  #cst-root .cst-row { min-height: 36px; align-items: center; }
+  #cst-root .cst-fold { padding: 8px 12px; margin: -8px -4px -8px -12px; }
+  #cst-root .cst-check, #cst-root .cst-starter { padding-top: 10px; padding-bottom: 10px; }
+}

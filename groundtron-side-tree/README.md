@@ -69,6 +69,16 @@ to klucz dla Firefoksa, rozszerzenie działa mimo niego.
 Tymczasowy dodatek znika po restarcie przeglądarki. Na stałe trzeba go podpisać
 na `addons.mozilla.org`.
 
+## Firefox na telefonie (Android)
+
+Panel działa też w wąskim oknie. Na telefonie zajmuje całą szerokość ekranu, ma większe przyciski
+i na początku jest zwinięty do uchwytu przy prawej krawędzi; dotknij go, żeby otworzyć. Potrzebny
+jest Firefox 128 lub nowszy. Z tego, co wiem, Firefox na Androidzie instaluje dodatki tylko
+z `addons.mozilla.org` albo z podpisanego pliku `.xpi`, więc nie wczytasz go jak „rozpakowanego"
+w Chrome: trzeba go podpisać na AMO (wystarczy podpis do własnej dystrybucji). Nie testowałem go
+na prawdziwym telefonie, tylko w oknie o szerokości 375 px. Podpowiedzi w dymkach (np. liczby
+na pasku postępu) wymagają myszy, na ekranie dotykowym ich nie ma.
+
 ## Uprawnienia
 
 Żadnych. W `manifest.json` nie ma sekcji `permissions`: rozszerzenie czyta tylko

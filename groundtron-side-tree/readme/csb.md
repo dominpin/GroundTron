@@ -61,6 +61,15 @@ dlô Firefoxa, rozszérzenié dzejô mimò niegò.
 Tymczasowi dodatk zniko pò restarce przezérnika. Na stałé trzeba gò pòdpisac na
 `addons.mozilla.org`.
 
+## Firefox na telefònie (Android)
+
+Panel dzejô téż w wąskòscim òknie. Na telefònie zajimô całą szérzã ekranu, mô wikszé knąpë i na
+zôczątkù je zwiniãti do ùchwëtu przë prawi kòntrze; dotknij gò, żebë òtemknąc. Je pòtrzebny
+Firefox 128 abò nowszi. Z tegò, co wiém, Firefox na Androidze instalëje dodatczi le z
+`addons.mozilla.org` abò z pòdpisónégò lopka `.xpi`, tej nie wczëtôsz gò jak „rozpakòwónégò"
+w Chrome: trzeba gò pòdpisac na AMO. Nie testowôł gò na prôwdzëwim telefònie, le w òknie
+szérokòscë 375 px. Pòdpòwiescë w dymkach wëmôgają mëszë i na dotikòwim ekranie jich nie ma.
+
 ## Prawa
 
 Żódnëch. W `manifest.json` nie ma sekcji `permissions`: rozszérzenié le czëtô starnã

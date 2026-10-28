@@ -37,7 +37,9 @@
   let lastActivity = Date.now();
   let chars = 0;
   let convoKey = location.pathname;
-  let collapsed = load('collapsed', '0') === '1';
+  // On a phone the open panel would cover the page, so it starts folded to its handle.
+  const narrow = () => window.matchMedia('(max-width: 700px)').matches;
+  let collapsed = load('collapsed', narrow() ? '1' : '0') === '1';
   const showMentions = true; // mentions are always shown
   let tab = load('tab', 'files');
   let follow = load('follow', '1') === '1';
@@ -213,14 +215,17 @@
   }
 
   function dragToResize(grip) {
+    // Pointer events, so a finger on a tablet drags it like a mouse does.
     let startX = 0, startW = 0, dragging = false;
-    grip.addEventListener('mousedown', e => { dragging = true; startX = e.clientX; startW = width; e.preventDefault(); });
-    window.addEventListener('mousemove', e => {
+    grip.addEventListener('pointerdown', e => { dragging = true; startX = e.clientX; startW = width; grip.setPointerCapture(e.pointerId); e.preventDefault(); });
+    grip.addEventListener('pointermove', e => {
       if (!dragging) return;
       width = Math.min(460, Math.max(220, startW + (startX - e.clientX)));
       ui.rootEl.style.setProperty('--cst-w', width + 'px');
     });
-    window.addEventListener('mouseup', () => { if (dragging) { dragging = false; save('width', width); } });
+    const end = () => { if (dragging) { dragging = false; save('width', width); } };
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
   }
 
   function setCollapsed(v) { collapsed = v; save('collapsed', v ? '1' : '0'); paint(); }

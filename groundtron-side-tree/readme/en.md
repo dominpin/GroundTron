@@ -61,6 +61,16 @@ Firefox, and the extension works despite it.
 A temporary add-on disappears when the browser restarts. To keep it, it has to be signed on
 `addons.mozilla.org`.
 
+## Firefox on a phone (Android)
+
+The panel also works in a narrow window. On a phone it takes the full width of the screen, has
+bigger buttons and starts folded to a handle on the right edge; tap it to open. It needs Firefox
+128 or newer. As far as I know, Firefox on Android installs add-ons only from `addons.mozilla.org`
+or from a signed `.xpi` file, so you cannot load it "unpacked" as in Chrome: it has to be signed
+on AMO (a signature for your own distribution is enough). I have not tested it on a real phone,
+only in a 375 px wide window. Tooltips (for example the numbers on the progress bar) need a
+mouse and are not available on a touch screen.
+
 ## Permissions
 
 None. `manifest.json` has no `permissions` section: the extension only reads the `claude.ai`
