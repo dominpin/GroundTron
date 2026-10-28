@@ -32,11 +32,11 @@ tylko jeden język, jako zip z katalogu [`dist`](dist) z własnym README:
 
 | Język | Zip do pobrania |
 | --- | --- |
-| polski | [`groundtron-side-tree-pl-polski.zip`](dist/groundtron-side-tree-pl-polski.zip) |
+| Polski | [`groundtron-side-tree-pl-polski.zip`](dist/groundtron-side-tree-pl-polski.zip) |
 | English | [`groundtron-side-tree-en-english.zip`](dist/groundtron-side-tree-en-english.zip) |
-| kaszëbsczi | [`groundtron-side-tree-csb-kaszubski.zip`](dist/groundtron-side-tree-csb-kaszubski.zip) |
-| ślōnski | [`groundtron-side-tree-szl-slaski.zip`](dist/groundtron-side-tree-szl-slaski.zip) |
-| gôrolsko | [`groundtron-side-tree-gor-goralski.zip`](dist/groundtron-side-tree-gor-goralski.zip) |
+| Kaszëbsczi | [`groundtron-side-tree-csb-kaszubski.zip`](dist/groundtron-side-tree-csb-kaszubski.zip) |
+| Ślōnski | [`groundtron-side-tree-szl-slaski.zip`](dist/groundtron-side-tree-szl-slaski.zip) |
+| Gôrolsko | [`groundtron-side-tree-gor-goralski.zip`](dist/groundtron-side-tree-gor-goralski.zip) |
 
 Instalacja, uprawnienia i ograniczenia w [groundtron-side-tree/README.md](groundtron-side-tree/README.md).
 Teksty kaszubskie, śląskie i góralskie to pierwsza wersja, jeszcze bez sprawdzenia przez

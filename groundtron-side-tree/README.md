@@ -43,11 +43,11 @@ języków i listę wyboru w prawym rogu paska zakładek (wybór zapamiętuje si�
 
 | Język | Zip do pobrania | README |
 | --- | --- | --- |
-| polski | `groundtron-side-tree-pl-polski.zip` | [pl](readme/pl.md) |
+| Polski | `groundtron-side-tree-pl-polski.zip` | [pl](readme/pl.md) |
 | English | `groundtron-side-tree-en-english.zip` | [en](readme/en.md) |
-| kaszëbsczi | `groundtron-side-tree-csb-kaszubski.zip` | [csb](readme/csb.md) |
-| ślōnski | `groundtron-side-tree-szl-slaski.zip` | [szl](readme/szl.md) |
-| gôrolsko | `groundtron-side-tree-gor-goralski.zip` | [gor](readme/gor.md) |
+| Kaszëbsczi | `groundtron-side-tree-csb-kaszubski.zip` | [csb](readme/csb.md) |
+| Ślōnski | `groundtron-side-tree-szl-slaski.zip` | [szl](readme/szl.md) |
+| Gôrolsko | `groundtron-side-tree-gor-goralski.zip` | [gor](readme/gor.md) |
 
 Każdy zip ma własne README w swoim języku (pliki w [`readme`](readme)). Rozpakuj zip i wczytaj folder jak w instrukcji niżej. Teksty kaszubskie, śląskie i góralskie, także README, to staranna pierwsza wersja, bez sprawdzenia przez native speakera; teksty panelu poprawisz w plikach z katalogu `i18n`, po jednym na język. Zipy buduje `powershell -File tools/build-language-zips.ps1`.
 
