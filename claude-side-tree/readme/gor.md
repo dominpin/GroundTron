@@ -1,7 +1,7 @@
 # Claude Side Tree
 
 Rozsyrzynie do Chrome / Brave / Firefox, co dokłada panel po prawyj stronie `claude.ai`.
-Wyglōnd i farby te same, co w modzie [cc-combo](https://github.com/dominpin/Ultron).
+Wyglōnd i farby te same, co w modzie [cc-combo](https://github.com/dominpin/GroundTron).
 
 > To je piyrsa wersyjo tekstu po góralsku. Cekajom na przejrzenie przez prawdziwego gazdę godki.
 

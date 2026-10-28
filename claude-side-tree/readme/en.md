@@ -1,7 +1,7 @@
 # Claude Side Tree
 
 A Chrome / Brave / Firefox extension that adds a panel on the right side of `claude.ai`.
-Same look and colours as the [cc-combo](https://github.com/dominpin/Ultron) mod.
+Same look and colours as the [cc-combo](https://github.com/dominpin/GroundTron) mod.
 
 ## What it shows
 

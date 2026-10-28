@@ -1,7 +1,7 @@
 # Claude Side Tree
 
 Rozszérzenié do Chrome / Brave / Firefox, chtërné dodôwô panel z prawi stronë `claude.ai`.
-Wëzdrzatk i farwë te same, co w mòdze [cc-combo](https://github.com/dominpin/Ultron).
+Wëzdrzatk i farwë te same, co w mòdze [cc-combo](https://github.com/dominpin/GroundTron).
 
 > Tuwò je pierwszô wersjô tekstu pò kaszëbskù. Czekô na przezérk przez rodzonégò mòwcã.
 

@@ -1,4 +1,4 @@
-# Ultron: moje narzędzia do Claude
+# GroundTron: moje narzędzia do Claude
 
 Dwie rzeczy w tym samym wyglądzie: mod do Claude Code i rozszerzenie do przeglądarki.
 
@@ -13,7 +13,7 @@ Opis w [cc-combo/README.md](cc-combo/README.md).
 Potrzebny Claude Code 2.1.287 lub nowszy (`claude update`). W Claude Code:
 
 ```
-/plugin marketplace add dominpin/Ultron
+/plugin marketplace add dominpin/GroundTron
 /plugin install cc-combo@my-mods
 ```
 

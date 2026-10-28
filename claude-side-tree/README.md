@@ -1,7 +1,7 @@
 # Claude Side Tree
 
 Rozszerzenie do Chrome / Brave / Firefox, które dokłada panel po prawej stronie `claude.ai`.
-Wygląd i kolory te same co w modzie [cc-combo](https://github.com/dominpin/Ultron).
+Wygląd i kolory te same co w modzie [cc-combo](https://github.com/dominpin/GroundTron).
 
 ## Co pokazuje
 
