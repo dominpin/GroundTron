@@ -1,6 +1,6 @@
 // Ślōnski: a first pass that wants a native speaker's review.
 CST_I18N.szl = {
-  tabFiles: 'Pliki', tabHints: 'Wskazōwki', lang: 'Godka',
+  tabFiles: 'Pliki', tabHints: 'Wskazōwki', lang: 'Godka', follow: 'idź za',
   grip: 'Ciōng, coby zmiynić szyrokość',
   count: n => `${n} plik(ōw)`,
   empty: 'Jeszcze niy ma co widzieć. Drzewko sie zapełnio, jak w rozmowie pojawi sie wywołanie na pliku, na przikłod Edit(src/app.ts).',

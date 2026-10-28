@@ -1,5 +1,5 @@
 CST_I18N.en = {
-  tabFiles: 'Files', tabHints: 'Hints', lang: 'Language',
+  tabFiles: 'Files', tabHints: 'Hints', lang: 'Language', follow: 'follow',
   grip: 'Drag to resize',
   count: n => `${n} file(s)`,
   empty: 'Nothing yet. The tree fills up when the conversation contains a call on a file, for example Edit(src/app.ts).',

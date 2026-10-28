@@ -1,6 +1,6 @@
 // Kaszëbsczi: a first pass that wants a native speaker's review.
 CST_I18N.csb = {
-  tabFiles: 'Plikë', tabHints: 'Pòdpòwiescë', lang: 'Jãzëk',
+  tabFiles: 'Plikë', tabHints: 'Pòdpòwiescë', lang: 'Jãzëk', follow: 'pòdążôj',
   grip: 'Ùcygni, żebë zmienic szérzã',
   count: n => `${n} plik(ów)`,
   empty: 'Jesz nick nie je widzec. Drzewò sã zapełnia, czej w rozmòwie pòjawi sã wëwòłanié na pliku, np. Edit(src/app.ts).',

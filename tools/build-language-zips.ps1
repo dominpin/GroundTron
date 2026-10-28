@@ -21,11 +21,13 @@ foreach ($code in $langs.Keys) {
   }
   Get-ChildItem $src -Recurse -File | ForEach-Object {
     $rel = $_.FullName.Substring($src.Length + 1).Replace('\', '/')
-    if ($rel -like 'test/*' -or $rel -eq 'lang-default.js' -or $rel -eq 'manifest.json') { return }
+    if ($rel -like 'test/*' -or $rel -eq 'lang-default.js' -or $rel -eq 'manifest.json' -or $rel -eq 'README.md' -or $rel -like 'readme/*') { return }
     # Only this language's texts go in.
     if ($rel -like 'i18n/*' -and $rel -ne 'i18n/base.js' -and $rel -ne "i18n/$code.js") { return }
     [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $_.FullName, $rel)
   }
+  # The README in this language, from claude-side-tree/readme/<code>.md.
+  Add-Text 'README.md' ([IO.File]::ReadAllText((Join-Path $src "readme/$code.md")))
   Add-Text 'lang-default.js' "globalThis.CST_DEFAULT_LANG = '$code';`n"
   $manifest = [IO.File]::ReadAllText((Join-Path $src 'manifest.json'))
   $manifest = [regex]::Replace($manifest, '"js": \[[^\]]*\]', "`"js`": [`"lang-default.js`", `"i18n/base.js`", `"i18n/$code.js`", `"prompts.js`", `"content.js`"]")

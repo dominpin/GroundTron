@@ -1,6 +1,6 @@
 // Gôrolsko: a first pass that wants a native speaker's review.
 CST_I18N.gor = {
-  tabFiles: 'Pliki', tabHints: 'Porady', lang: 'Godka',
+  tabFiles: 'Pliki', tabHints: 'Porady', lang: 'Godka', follow: 'chodź za',
   grip: 'Przeciągnij, coby zmienić szyrokość',
   count: n => `${n} plików`,
   empty: 'Jesce nic ni ma. Drzewko sie zapełni, jak w rozmowie bedzie wywołanie na pliku, na przykład Edit(src/app.ts).',

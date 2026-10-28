@@ -1,5 +1,5 @@
 CST_I18N.pl = {
-  tabFiles: 'Pliki', tabHints: 'Podpowiedzi', lang: 'Język',
+  tabFiles: 'Pliki', tabHints: 'Podpowiedzi', lang: 'Język', follow: 'podążaj',
   grip: 'Przeciągnij, by zmienić szerokość',
   count: n => `${n} plik(ów)`,
   empty: 'Nic jeszcze nie widać. Drzewko zapełnia się, gdy w rozmowie pojawi się wywołanie na pliku, na przykład Edit(src/app.ts).',

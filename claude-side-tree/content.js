@@ -310,7 +310,7 @@
       rowEls.clear();
       body.textContent = '';
       const bar = el('div', { class: 'cst-opts' }, [
-        optBtn('podazaj', follow, (e) => {
+        optBtn(t('follow'), follow, (e) => {
           follow = !follow;
           save('follow', follow ? '1' : '0');
           // The bar is only rebuilt when the file list changes, so flip the look here.
