@@ -41,6 +41,7 @@
   let collapsed = load('collapsed', '0') === '1';
   let showMentions = load('mentions', '0') === '1';
   let follow = load('follow', '1') === '1';
+  let closedDirs = new Set((() => { try { return JSON.parse(load('closed', '[]')); } catch { return []; } })());
   let width = Math.min(460, Math.max(220, parseInt(load('width', '300'), 10) || 300));
 
   function load(k, d) { try { return localStorage.getItem('cst:' + k) ?? d; } catch { return d; } }
@@ -266,10 +267,11 @@
     setTimeout(() => target.classList.remove('cst-jump'), 2000);
   }
 
-  function rowsOf(node, depth, out) {
+  function rowsOf(node, depth, out, key = '') {
     for (const dir of [...node.dirs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
-      out.push({ kind: 'dir', name: dir.name, depth });
-      rowsOf(dir, depth + 1, out);
+      const dirKey = key + '/' + dir.name;
+      out.push({ kind: 'dir', name: dir.name, depth, key: dirKey });
+      rowsOf(dir, depth + 1, out, dirKey);
     }
     for (const f of node.files.sort((a, b) => a.name.localeCompare(b.name))) {
       out.push({ kind: 'file', name: f.name, path: f.path, depth });
@@ -280,7 +282,7 @@
   function renderFiles(body) {
     const list = [...files.values()].filter(f => showMentions || f.kind !== 'mention');
     const paths = list.map(f => f.path);
-    const sig = paths.slice().sort().join('|') + '#' + showMentions;
+    const sig = paths.slice().sort().join('|') + '#' + showMentions + '#' + [...closedDirs].sort().join('|');
 
     if (sig !== lastSig) {
       lastSig = sig;
@@ -302,6 +304,14 @@
             if (last) last.row.scrollIntoView({ block: 'center' });
           }
         }),
+        optBtn('zwin', false, () => {
+          const dirs = rowsOf(treeOf(paths, commonDir(paths)), 0, []).filter(r => r.kind === 'dir').map(r => r.key);
+          // Any folder open: close them all; all closed: open them all.
+          const anyOpen = dirs.some(k => !closedDirs.has(k));
+          closedDirs = new Set(anyOpen ? dirs : []);
+          save('closed', JSON.stringify([...closedDirs]));
+          paint();
+        }),
         el('span', { class: 'cst-count', text: paths.length ? `${paths.length} plik(ow)` : '' }),
       ]);
       body.appendChild(bar);
@@ -313,10 +323,22 @@
       const prefix = commonDir(paths);
       if (prefix) body.appendChild(el('div', { class: 'cst-root-line', text: prefix, title: prefix }));
       const tree = el('div', { class: 'cst-tree' });
+      let hideBelow = Infinity; // depth of a closed folder whose contents are skipped
       for (const row of rowsOf(treeOf(paths, prefix), 0, [])) {
+        if (row.depth > hideBelow) continue;
+        hideBelow = Infinity;
         if (row.kind === 'dir') {
-          tree.appendChild(el('div', { class: 'cst-row cst-dir', style: `padding-left:${6 + row.depth * 12}px` }, [
-            el('span', { class: 'cst-glyph', text: '▸' }),
+          const closed = closedDirs.has(row.key);
+          if (closed) hideBelow = row.depth;
+          tree.appendChild(el('div', {
+            class: 'cst-row cst-dir', style: `padding-left:${6 + row.depth * 12}px`, title: closed ? 'Rozwin' : 'Zwin',
+            onclick: () => {
+              if (closedDirs.has(row.key)) closedDirs.delete(row.key); else closedDirs.add(row.key);
+              save('closed', JSON.stringify([...closedDirs]));
+              paint();
+            },
+          }, [
+            el('span', { class: 'cst-glyph', text: closed ? '▸' : '▾' }),
             el('span', { class: 'cst-name', text: row.name }),
           ]));
         } else {

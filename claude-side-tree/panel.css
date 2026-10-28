@@ -227,7 +227,8 @@
 }
 #cst-root .cst-row:hover { background: var(--cst-row); }
 #cst-root .cst-name { overflow: hidden; text-overflow: ellipsis; }
-#cst-root .cst-dir { color: var(--cst-muted); }
+#cst-root .cst-dir { color: var(--cst-muted); cursor: pointer; }
+#cst-root .cst-dir:hover { color: var(--cst-fg); }
 #cst-root .cst-glyph { width: 1em; text-align: center; flex: 0 0 auto; }
 #cst-root .cst-badge {
   margin-left: auto;
