@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Claude Side Tree",
+  "version": "0.1.0",
+  "description": "Drzewko plikow dotknietych w rozmowie, licznik bezczynnosci watku i sciagawka promptowa. Dziala lokalnie, nic nie wysyla.",
+  "icons": {
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["prompts.js", "content.js"],
+      "css": ["panel.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "claude-side-tree@dominpin",
+      "strict_min_version": "128.0"
+    }
+  }
+}

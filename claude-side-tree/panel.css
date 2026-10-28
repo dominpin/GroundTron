@@ -1,0 +1,281 @@
+/* Claude Side Tree. Everything is scoped under #cst-root so the page's own
+   styles and this file stay out of each other's way. The colours are the
+   cc-combo palette, set as variables from content.js. */
+
+#cst-root {
+  --cst-w: 300px;
+  --cst-bg: #1b1a19;
+  --cst-fg: #ecebe8;
+  --cst-line: #302e2c;
+  --cst-row: rgba(255, 255, 255, 0.04);
+  position: fixed;
+  inset: 0 0 auto auto;
+  z-index: 2147483000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--cst-fg);
+}
+
+#cst-root[data-theme="light"] {
+  --cst-bg: #faf9f7;
+  --cst-fg: #23211f;
+  --cst-line: #e3e0dc;
+  --cst-row: rgba(0, 0, 0, 0.04);
+}
+
+#cst-root *,
+#cst-root *::before,
+#cst-root *::after { box-sizing: border-box; }
+
+#cst-root button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* The collapsed handle on the edge of the window. */
+#cst-root .cst-tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: none;
+  padding: 10px 6px;
+  background: var(--cst-bg);
+  border: 1px solid var(--cst-line);
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  color: var(--cst-accent);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+}
+#cst-root[data-collapsed="1"] .cst-tab { display: block; }
+#cst-root[data-collapsed="1"] .cst-panel { display: none; }
+
+#cst-root .cst-panel {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: var(--cst-w);
+  display: flex;
+  flex-direction: column;
+  background: var(--cst-bg);
+  border: 1px solid var(--cst-line);
+  border-radius: 10px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+#cst-root .cst-grip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+}
+#cst-root .cst-grip:hover { background: var(--cst-accent); opacity: 0.5; }
+
+#cst-root .cst-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 6px 12px;
+  border-bottom: 1px solid var(--cst-line);
+}
+#cst-root .cst-logo { color: var(--cst-accent); }
+#cst-root .cst-title { font-weight: 600; letter-spacing: 0.01em; }
+#cst-root .cst-x {
+  margin-left: auto;
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0.6;
+  padding: 2px 4px;
+}
+#cst-root .cst-x:hover { opacity: 1; }
+
+/* The row that stands in for cache-tax's band above the prompt. */
+#cst-root .cst-meter {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--cst-line);
+  cursor: help;
+}
+#cst-root .cst-dot[data-tone="success"] { color: var(--cst-success); }
+#cst-root .cst-dot[data-tone="warning"] { color: var(--cst-warning); }
+#cst-root .cst-dot[data-tone="danger"] { color: var(--cst-danger); }
+#cst-root .cst-m-main { font-weight: 600; }
+#cst-root .cst-m-sub { color: var(--cst-muted); font-size: 11.5px; }
+
+#cst-root .cst-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--cst-line);
+}
+#cst-root .cst-tabbtn {
+  padding: 5px 10px;
+  border-radius: 6px 6px 0 0;
+  color: var(--cst-muted);
+}
+#cst-root .cst-tabbtn.cst-on {
+  color: var(--cst-fg);
+  background: var(--cst-row);
+  box-shadow: inset 0 -2px 0 var(--cst-accent);
+}
+
+#cst-root .cst-body {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 8px 14px;
+}
+
+/* Files ------------------------------------------------------------------ */
+
+#cst-root .cst-opts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px 6px;
+}
+#cst-root .cst-opt {
+  padding: 2px 7px;
+  border: 1px solid var(--cst-line);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--cst-muted);
+}
+#cst-root .cst-opt.cst-on {
+  color: var(--cst-bg);
+  background: var(--cst-accent);
+  border-color: var(--cst-accent);
+}
+#cst-root .cst-count { margin-left: auto; font-size: 11px; color: var(--cst-muted); }
+
+#cst-root .cst-empty { margin: 10px 6px; color: var(--cst-muted); }
+
+#cst-root .cst-root-line {
+  padding: 2px 6px 6px;
+  color: var(--cst-muted);
+  font-size: 11px;
+  direction: rtl;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#cst-root .cst-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 6px;
+  border-radius: 5px;
+  border-left: 2px solid transparent;
+  white-space: nowrap;
+}
+#cst-root .cst-row:hover { background: var(--cst-row); }
+#cst-root .cst-name { overflow: hidden; text-overflow: ellipsis; }
+#cst-root .cst-dir { color: var(--cst-muted); }
+#cst-root .cst-glyph { width: 1em; text-align: center; flex: 0 0 auto; }
+#cst-root .cst-badge {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--cst-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#cst-root .cst-file[data-kind="read"] .cst-glyph { color: var(--cst-info); }
+#cst-root .cst-file[data-kind="edit"] .cst-glyph { color: var(--cst-accent); }
+#cst-root .cst-file[data-kind="write"] .cst-glyph { color: var(--cst-success); }
+#cst-root .cst-file[data-kind="mention"] { color: var(--cst-muted); }
+#cst-root .cst-file[data-kind="mention"] .cst-glyph { color: var(--cst-muted); }
+
+#cst-root .cst-recent { border-left-color: currentColor; }
+#cst-root .cst-recent[data-kind="read"] { border-left-color: var(--cst-info); }
+#cst-root .cst-recent[data-kind="edit"] { border-left-color: var(--cst-accent); }
+#cst-root .cst-recent[data-kind="write"] { border-left-color: var(--cst-success); }
+
+/* The flash when Claude just opened or changed this file. */
+#cst-root .cst-flash { animation: cst-flash 1.6s ease-out 1; }
+#cst-root .cst-flash[data-kind="read"] { --cst-flash-c: var(--cst-info); }
+#cst-root .cst-flash[data-kind="edit"] { --cst-flash-c: var(--cst-accent); }
+#cst-root .cst-flash[data-kind="write"] { --cst-flash-c: var(--cst-success); }
+
+@keyframes cst-flash {
+  0% { background: var(--cst-flash-c, var(--cst-accent)); color: #fff; }
+  35% { background: color-mix(in srgb, var(--cst-flash-c, var(--cst-accent)) 35%, transparent); }
+  100% { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #cst-root .cst-flash { animation: none; background: var(--cst-row); }
+}
+
+/* Prompt ----------------------------------------------------------------- */
+
+#cst-root .cst-checks { padding: 2px 4px 6px; }
+#cst-root .cst-check {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 3px 4px;
+  border-radius: 5px;
+  color: var(--cst-muted);
+  cursor: help;
+}
+#cst-root .cst-check.cst-ok { color: var(--cst-fg); }
+#cst-root .cst-check.cst-ok .cst-tick { color: var(--cst-success); }
+#cst-root .cst-tick { font-size: 11px; }
+
+#cst-root .cst-note {
+  margin: 2px 6px 12px;
+  font-size: 11px;
+  color: var(--cst-muted);
+}
+
+#cst-root h4 {
+  margin: 10px 6px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cst-muted);
+}
+
+#cst-root .cst-starter {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  margin-bottom: 3px;
+  border: 1px solid var(--cst-line);
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#cst-root .cst-starter:hover { border-color: var(--cst-accent); }
+#cst-root .cst-starter[data-done]::after {
+  content: " " attr(data-done);
+  color: var(--cst-success);
+  font-size: 11px;
+}
+
+#cst-root .cst-principle {
+  padding: 3px 6px;
+  color: var(--cst-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: help;
+}
+#cst-root .cst-principle b { color: var(--cst-fg); font-weight: 600; }

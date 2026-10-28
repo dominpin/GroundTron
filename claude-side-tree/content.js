@@ -1,0 +1,508 @@
+// Claude Side Tree: a panel on the right of claude.ai.
+//
+//  - the files this conversation touched, as a tree, flashing when Claude
+//    reads, writes or edits one,
+//  - how long the thread has been idle and roughly how big it is,
+//  - the prompt checklist from Anthropic's own prompting pages.
+//
+// Everything is read from the page that is already on screen. Nothing is sent
+// anywhere, and the only thing stored is this panel's own state, under keys
+// beginning "cst:" in the page's localStorage.
+//
+// What it can and cannot know: a tool call is recognised from the text the
+// transcript shows, such as "Edit(src/app.ts)". So the tree is as good as that
+// text. It never sees your filesystem, the real token count or the real cache.
+(() => {
+  'use strict';
+  if (window.__cstLoaded) return;
+  window.__cstLoaded = true;
+
+  // --- the look, shared with the cc-combo mod ------------------------------
+
+  const PALETTE = {
+    dark: { accent: '#D97757', success: '#5FBF8F', warning: '#E5C07B', danger: '#E06C75', info: '#61AFEF', muted: '#8A8F98' },
+    light: { accent: '#B8532F', success: '#1E7B4F', warning: '#8A5A00', danger: '#B42318', info: '#1E4FA3', muted: '#5B6270' },
+  };
+
+  const KINDS = {
+    read: { color: 'info', glyph: '◦', label: 'czytany' },
+    edit: { color: 'accent', glyph: '●', label: 'edytowany' },
+    write: { color: 'success', glyph: '✚', label: 'utworzony' },
+    mention: { color: 'muted', glyph: '·', label: 'wspomniany' },
+  };
+
+  // --- state ---------------------------------------------------------------
+
+  const files = new Map(); // path -> { path, kind, kinds:Set, lastTs, count }
+  let lastActivity = Date.now();
+  let chars = 0;
+  let convoKey = location.pathname;
+  let tab = load('tab', 'files');
+  let collapsed = load('collapsed', '0') === '1';
+  let showMentions = load('mentions', '0') === '1';
+  let follow = load('follow', '1') === '1';
+  let width = Math.min(460, Math.max(220, parseInt(load('width', '300'), 10) || 300));
+
+  function load(k, d) { try { return localStorage.getItem('cst:' + k) ?? d; } catch { return d; } }
+  function save(k, v) { try { localStorage.setItem('cst:' + k, String(v)); } catch { /* private mode */ } }
+
+  // --- reading file names out of the transcript ----------------------------
+
+  const VERB_KIND = {
+    read: 'read', grep: 'read', glob: 'read', search: 'read', cat: 'read',
+    write: 'write', create: 'write',
+    edit: 'edit', multiedit: 'edit', update: 'edit', notebookedit: 'edit',
+  };
+  const CALL_RE = /\b(Read|Write|Edit|MultiEdit|Update|Create|NotebookEdit|Glob|Grep|Search)\s*\(\s*([^)\n]{1,240}?)\s*\)/g;
+  // A path: either something with a separator, or a bare name with an extension.
+  const PATH_RE = /(?:[A-Za-z]:)?[\w.@~+-]*(?:[\\/][\w.@+-]+)+|\b[\w@+-]+(?:\.[\w+-]+)*\.[A-Za-z][A-Za-z0-9]{0,7}\b/;
+  // Endings that are almost always a domain or a version, not a file here.
+  const NOT_FILES = new Set(['com', 'org', 'net', 'ai', 'io', 'co', 'gov', 'edu', 'pl', 'html5']);
+
+  function cleanPath(raw) {
+    if (!raw) return null;
+    let p = raw.trim().replace(/^["'`<(]+|["'`>),.;:]+$/g, '');
+    p = p.replace(/:\d+(?::\d+)?$/, ''); // file.ts:12:4
+    if (!p || /^https?:\/\//i.test(p) || p.includes('://')) return null;
+    p = p.replace(/\\/g, '/').replace(/\/{2,}/g, '/').replace(/^\.\//, '');
+    if (p.length > 200 || p.length < 3) return null;
+    if (!/[A-Za-z]/.test(p)) return null;
+    const name = p.split('/').pop() || '';
+    const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
+    if (!p.includes('/')) {
+      // A bare word: only a real-looking extension makes it a file.
+      if (!ext || NOT_FILES.has(ext) || !/^[a-z][a-z0-9]{0,7}$/.test(ext)) return null;
+      if (/^\d+$/.test(name.split('.')[0])) return null;
+    }
+    return p;
+  }
+
+  function touch(path, kind, ts) {
+    if (!path) return false;
+    let f = files.get(path);
+    if (!f) {
+      f = { path, kind, kinds: new Set(), lastTs: 0, count: 0 };
+      files.set(path, f);
+    }
+    f.kinds.add(kind);
+    // A file that was ever written or edited keeps that as its colour.
+    const rank = { mention: 0, read: 1, edit: 2, write: 3 };
+    if (rank[kind] >= rank[f.kind]) f.kind = kind;
+    f.lastTs = ts;
+    f.count++;
+    return true;
+  }
+
+  // Pulls every file mention out of one lump of text. `live` means the text
+  // just appeared, so what it finds is new activity worth flashing.
+  function scanText(text, live) {
+    if (!text || text.length > 400000) return false;
+    let found = false;
+    // A first scan of a conversation already on screen is history, not
+    // activity: timestamp 0 means no flash and no "touched just now" mark.
+    const ts = live ? Date.now() : 0;
+    const inCall = new Set();
+    let m;
+    CALL_RE.lastIndex = 0;
+    while ((m = CALL_RE.exec(text)) !== null) {
+      const kind = VERB_KIND[m[1].toLowerCase()] || 'read';
+      const hit = PATH_RE.exec(m[2]);
+      const path = cleanPath(hit && hit[0]);
+      if (!path) continue;
+      inCall.add(path);
+      const f = files.get(path);
+      // Within a second the same call is the same event, not a new one.
+      const isNew = !f || !f.kinds.has(kind) || ts - f.lastTs > 1200;
+      if (touch(path, kind, isNew ? ts : (f ? f.lastTs : ts)) && isNew) found = true;
+    }
+    if (showMentions) {
+      const words = text.match(new RegExp(PATH_RE.source, 'g')) || [];
+      for (const w of words.slice(0, 400)) {
+        const path = cleanPath(w);
+        if (path && !inCall.has(path) && !files.has(path)) {
+          touch(path, 'mention', 0);
+          found = true;
+        }
+      }
+    }
+    // A tool call is activity however short it is; otherwise it takes a
+    // sentence, so that the interface's own little updates do not count.
+    if (live && (found || text.trim().length > 40)) lastActivity = Date.now();
+    return found;
+  }
+
+  function root() {
+    return document.querySelector('main') || document.body;
+  }
+
+  function fullScan() {
+    const t = root().textContent || '';
+    chars = t.length;
+    scanText(t, false);
+  }
+
+  // --- the panel -----------------------------------------------------------
+
+  const el = (tag, props = {}, kids = []) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'class') n.className = v;
+      else if (k === 'text') n.textContent = v;
+      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      else if (v !== null && v !== undefined) n.setAttribute(k, v);
+    }
+    for (const kid of [].concat(kids)) if (kid) n.appendChild(kid);
+    return n;
+  };
+
+  function isLight() {
+    const bg = getComputedStyle(document.body).backgroundColor || '';
+    const m = bg.match(/\d+/g);
+    if (m && m.length >= 3) return (+m[0] * 299 + +m[1] * 587 + +m[2] * 114) / 1000 > 140;
+    return !window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  let ui = null;
+  const rowEls = new Map();
+  let lastSig = '';
+  const seenTs = new Map();
+
+  function build() {
+    const rootEl = el('div', { id: 'cst-root' });
+    const tabBtn = el('button', { class: 'cst-tab', title: 'Claude Side Tree', onclick: () => setCollapsed(false) }, [el('span', { text: '◧' })]);
+    const header = el('header', { class: 'cst-head' }, [
+      el('span', { class: 'cst-logo', text: '◧' }),
+      el('span', { class: 'cst-title', text: 'Side Tree' }),
+      el('button', { class: 'cst-x', title: 'Zwin panel', onclick: () => setCollapsed(true), text: '×' }),
+    ]);
+    const meter = el('div', { class: 'cst-meter' });
+    const tabs = el('nav', { class: 'cst-tabs' }, [
+      el('button', { class: 'cst-tabbtn', 'data-tab': 'files', text: 'Pliki', onclick: () => setTab('files') }),
+      el('button', { class: 'cst-tabbtn', 'data-tab': 'prompt', text: 'Prompt', onclick: () => setTab('prompt') }),
+    ]);
+    const body = el('div', { class: 'cst-body' });
+    const grip = el('div', { class: 'cst-grip', title: 'Przeciagnij, by zmienic szerokosc' });
+    const panel = el('aside', { class: 'cst-panel' }, [grip, header, meter, tabs, body]);
+    rootEl.appendChild(tabBtn);
+    rootEl.appendChild(panel);
+    document.body.appendChild(rootEl);
+    dragToResize(grip);
+    return { rootEl, panel, meter, body, tabs };
+  }
+
+  function dragToResize(grip) {
+    let startX = 0, startW = 0, dragging = false;
+    grip.addEventListener('mousedown', e => { dragging = true; startX = e.clientX; startW = width; e.preventDefault(); });
+    window.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      width = Math.min(460, Math.max(220, startW + (startX - e.clientX)));
+      ui.rootEl.style.setProperty('--cst-w', width + 'px');
+    });
+    window.addEventListener('mouseup', () => { if (dragging) { dragging = false; save('width', width); } });
+  }
+
+  function setCollapsed(v) { collapsed = v; save('collapsed', v ? '1' : '0'); paint(); }
+  function setTab(v) { tab = v; save('tab', v); paint(); }
+
+  // --- the files tab -------------------------------------------------------
+
+  function commonDir(paths) {
+    if (paths.length === 0) return '';
+    const split = paths.map(p => p.split('/').slice(0, -1));
+    let pre = split[0];
+    for (const parts of split.slice(1)) {
+      let i = 0;
+      while (i < pre.length && i < parts.length && pre[i] === parts[i]) i++;
+      pre = pre.slice(0, i);
+      if (pre.length === 0) break;
+    }
+    return pre.join('/');
+  }
+
+  function treeOf(paths, prefix) {
+    const rootNode = { name: '', dirs: new Map(), files: [] };
+    for (const p of paths) {
+      const rel = prefix && p.startsWith(prefix + '/') ? p.slice(prefix.length + 1) : p;
+      const parts = rel.split('/');
+      let node = rootNode;
+      for (const part of parts.slice(0, -1)) {
+        if (!node.dirs.has(part)) node.dirs.set(part, { name: part, dirs: new Map(), files: [] });
+        node = node.dirs.get(part);
+      }
+      node.files.push({ name: parts[parts.length - 1], path: p });
+    }
+    return rootNode;
+  }
+
+  function rowsOf(node, depth, out) {
+    for (const dir of [...node.dirs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
+      out.push({ kind: 'dir', name: dir.name, depth });
+      rowsOf(dir, depth + 1, out);
+    }
+    for (const f of node.files.sort((a, b) => a.name.localeCompare(b.name))) {
+      out.push({ kind: 'file', name: f.name, path: f.path, depth });
+    }
+    return out;
+  }
+
+  function renderFiles(body) {
+    const list = [...files.values()].filter(f => showMentions || f.kind !== 'mention');
+    const paths = list.map(f => f.path);
+    const sig = paths.slice().sort().join('|') + '#' + showMentions;
+
+    if (sig !== lastSig) {
+      lastSig = sig;
+      rowEls.clear();
+      body.textContent = '';
+      const bar = el('div', { class: 'cst-opts' }, [
+        optBtn('wzmianki', showMentions, () => { showMentions = !showMentions; save('mentions', showMentions ? '1' : '0'); if (showMentions) fullScan(); paint(); }),
+        optBtn('podazaj', follow, () => { follow = !follow; save('follow', follow ? '1' : '0'); paint(); }),
+        el('span', { class: 'cst-count', text: paths.length ? `${paths.length} plik(ow)` : '' }),
+      ]);
+      body.appendChild(bar);
+
+      if (paths.length === 0) {
+        body.appendChild(el('p', { class: 'cst-empty', text: 'Nic jeszcze nie widac. Drzewko zapelnia sie, gdy w rozmowie pojawi sie wywolanie na pliku, na przyklad Edit(src/app.ts).' }));
+        return;
+      }
+      const prefix = commonDir(paths);
+      if (prefix) body.appendChild(el('div', { class: 'cst-root-line', text: prefix, title: prefix }));
+      const tree = el('div', { class: 'cst-tree' });
+      for (const row of rowsOf(treeOf(paths, prefix), 0, [])) {
+        if (row.kind === 'dir') {
+          tree.appendChild(el('div', { class: 'cst-row cst-dir', style: `padding-left:${6 + row.depth * 12}px` }, [
+            el('span', { class: 'cst-glyph', text: '▸' }),
+            el('span', { class: 'cst-name', text: row.name }),
+          ]));
+        } else {
+          const r = el('div', { class: 'cst-row cst-file', style: `padding-left:${6 + row.depth * 12}px`, title: row.path }, [
+            el('span', { class: 'cst-glyph' }),
+            el('span', { class: 'cst-name', text: row.name }),
+            el('span', { class: 'cst-badge' }),
+          ]);
+          rowEls.set(row.path, r);
+          tree.appendChild(r);
+        }
+      }
+      body.appendChild(tree);
+    }
+
+    // Always refresh what each row shows: colour, glyph, and a flash when the
+    // file was touched since the last paint.
+    const now = Date.now();
+    let newest = null;
+    for (const f of list) {
+      const r = rowEls.get(f.path);
+      if (!r) continue;
+      const kind = KINDS[f.kind] || KINDS.read;
+      r.setAttribute('data-kind', f.kind);
+      r.querySelector('.cst-glyph').textContent = kind.glyph;
+      r.querySelector('.cst-badge').textContent = f.count > 1 ? String(f.count) : '';
+      r.title = `${f.path}\n${[...f.kinds].map(k => (KINDS[k] || {}).label || k).join(', ')}`;
+      if (f.lastTs && seenTs.get(f.path) !== f.lastTs) {
+        seenTs.set(f.path, f.lastTs);
+        r.classList.remove('cst-flash');
+        void r.offsetWidth; // restart the animation on a row that stayed
+        r.classList.add('cst-flash');
+        if (!newest || f.lastTs > newest.ts) newest = { ts: f.lastTs, row: r };
+      }
+      r.classList.toggle('cst-recent', !!f.lastTs && now - f.lastTs < 8000);
+    }
+    if (newest && follow) newest.row.scrollIntoView({ block: 'nearest' });
+  }
+
+  function optBtn(label, on, onclick) {
+    return el('button', { class: 'cst-opt' + (on ? ' cst-on' : ''), text: label, onclick });
+  }
+
+  // --- the meter, in the spirit of cache-tax -------------------------------
+
+  function fmtDur(ms) {
+    const s = Math.round(ms / 1000);
+    if (s < 60) return s + 's';
+    const m = Math.round(s / 60);
+    if (m < 60) return m + 'm';
+    const h = Math.floor(m / 60);
+    return `${h}h${String(m % 60).padStart(2, '0')}`;
+  }
+
+  function renderMeter(meter) {
+    const idle = Date.now() - lastActivity;
+    const tok = Math.round(chars / 3.8);
+    const state = idle < 5 * 60e3 ? ['swieze', 'success'] : idle < 60 * 60e3 ? ['moze byc zimne', 'warning'] : ['najpewniej zimne', 'danger'];
+    meter.textContent = '';
+    meter.title = 'Szacunki liczone z tego, co widac na stronie: wielkosc watku z dlugosci tekstu, a stan cache wylacznie z czasu bezczynnosci. Rozszerzenie nie widzi prawdziwego cache ani prawdziwej liczby tokenow.';
+    meter.appendChild(el('span', { class: 'cst-dot', 'data-tone': state[1], text: '●' }));
+    meter.appendChild(el('span', { class: 'cst-m-main', text: `watek ≈ ${tok > 1000 ? Math.round(tok / 1000) + 'k' : tok} tok` }));
+    meter.appendChild(el('span', { class: 'cst-m-sub', text: `bezczynnosc ${fmtDur(idle)} · ${state[0]}` }));
+  }
+
+  // --- the prompt tab ------------------------------------------------------
+
+  function composer() {
+    const nodes = [...document.querySelectorAll('div[contenteditable="true"], textarea')];
+    return nodes.find(n => n.offsetParent !== null && !n.closest('#cst-root')) || null;
+  }
+
+  function draftText() {
+    const c = composer();
+    if (!c) return '';
+    return (c.value !== undefined ? c.value : c.innerText) || '';
+  }
+
+  function insertPrompt(text) {
+    const c = composer();
+    if (c && c.value !== undefined) {
+      c.value = c.value ? c.value + '\n' + text : text;
+      c.dispatchEvent(new Event('input', { bubbles: true }));
+      c.focus();
+      return 'wstawione';
+    }
+    if (c) {
+      c.focus();
+      const ok = document.execCommand && document.execCommand('insertText', false, text);
+      if (ok) return 'wstawione';
+    }
+    navigator.clipboard?.writeText(text);
+    return 'skopiowane';
+  }
+
+  let promptBoxes = null;
+
+  function renderPrompt(body) {
+    if (!promptBoxes) {
+      body.textContent = '';
+      const checks = el('div', { class: 'cst-checks' });
+      const rows = new Map();
+      for (const p of CST_DOCS.patterns) {
+        const r = el('div', { class: 'cst-check', title: p.hint + '\n\nPrzyklad: ' + p.example }, [
+          el('span', { class: 'cst-tick', text: '○' }),
+          el('span', { class: 'cst-check-label', text: p.label }),
+        ]);
+        rows.set(p.id, r);
+        checks.appendChild(r);
+      }
+      const note = el('p', { class: 'cst-note', text: 'Podpowiedzi liczone ze slow w polu wpisywania. To wskazowki z dokumentacji, nie ocena promptu.' });
+      const starters = el('div', { class: 'cst-starters' });
+      starters.appendChild(el('h4', { text: 'Na poczatek' }));
+      for (const s of CST_DOCS.starters) {
+        starters.appendChild(el('button', {
+          class: 'cst-starter', title: s.text,
+          onclick: ev => { const how = insertPrompt(s.text); ev.currentTarget.setAttribute('data-done', how); setTimeout(() => ev.currentTarget.removeAttribute('data-done'), 1600); },
+        }, [el('span', { text: s.label })]));
+      }
+      const pr = el('div', { class: 'cst-principles' }, [el('h4', { text: 'Zasady' })]);
+      for (const [t, d] of CST_DOCS.principles) {
+        pr.appendChild(el('div', { class: 'cst-principle', title: d }, [
+          el('b', { text: t }), el('span', { text: ' ' + d }),
+        ]));
+      }
+      body.appendChild(checks);
+      body.appendChild(note);
+      body.appendChild(starters);
+      body.appendChild(pr);
+      promptBoxes = rows;
+    }
+    // The checks are written without Polish diacritics, so the draft is
+    // stripped of them before testing: "tabeli" and "tabeli" count alike.
+    const draft = draftText()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/ł/g, 'l').replace(/Ł/g, 'L');
+    for (const p of CST_DOCS.patterns) {
+      const row = promptBoxes.get(p.id);
+      let ok = false;
+      try { ok = draft.trim() ? !!p.test(draft) : false; } catch { ok = false; }
+      row.classList.toggle('cst-ok', ok);
+      row.querySelector('.cst-tick').textContent = ok ? '●' : '○';
+    }
+  }
+
+  // --- painting ------------------------------------------------------------
+
+  let painting = 0;
+  function paint() {
+    if (painting) return;
+    // A timer, not requestAnimationFrame: a background tab never gets a frame,
+    // and the panel has to be there the moment the tab comes forward.
+    painting = setTimeout(() => {
+      painting = 0;
+      try { paintNow(); } catch (err) { console.warn('[side-tree]', err); }
+    }, 60);
+  }
+
+  function paintNow() {
+    if (!ui) ui = build();
+    const light = isLight();
+    const pal = PALETTE[light ? 'light' : 'dark'];
+    for (const [k, v] of Object.entries(pal)) ui.rootEl.style.setProperty('--cst-' + k, v);
+    ui.rootEl.style.setProperty('--cst-w', width + 'px');
+    ui.rootEl.setAttribute('data-theme', light ? 'light' : 'dark');
+    ui.rootEl.setAttribute('data-collapsed', collapsed ? '1' : '0');
+    if (collapsed) return;
+    for (const b of ui.tabs.querySelectorAll('.cst-tabbtn')) b.classList.toggle('cst-on', b.getAttribute('data-tab') === tab);
+    renderMeter(ui.meter);
+    if (tab !== ui.body.getAttribute('data-tab')) {
+      ui.body.setAttribute('data-tab', tab);
+      ui.body.textContent = '';
+      lastSig = '';
+      rowEls.clear();
+      promptBoxes = null;
+    }
+    if (tab === 'files') renderFiles(ui.body);
+    else renderPrompt(ui.body);
+  }
+
+  // --- watching the page ---------------------------------------------------
+
+  function reset() {
+    files.clear();
+    rowEls.clear();
+    seenTs.clear();
+    lastSig = '';
+    chars = 0;
+    lastActivity = Date.now();
+    if (ui) ui.body.textContent = '';
+    fullScan();
+    paint();
+  }
+
+  const observer = new MutationObserver(records => {
+    try {
+      let dirty = false;
+      for (const rec of records) {
+        if (rec.target && rec.target.closest && rec.target.closest('#cst-root')) continue;
+        if (rec.type === 'characterData') {
+          const parent = rec.target.parentElement;
+          if (parent) dirty = scanText(parent.textContent, true) || dirty;
+        }
+        for (const node of rec.addedNodes) {
+          if (node.nodeType === 3) dirty = scanText(node.textContent, true) || dirty;
+          else if (node.nodeType === 1 && !node.closest('#cst-root')) {
+            chars += (node.textContent || '').length;
+            dirty = scanText(node.textContent, true) || dirty;
+          }
+        }
+      }
+      if (dirty) paint();
+    } catch (err) { console.warn('[side-tree]', err); }
+  });
+
+  function start() {
+    fullScan();
+    paint();
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
+    // The idle figure moves on its own, and a flash has to fade.
+    setInterval(() => { if (!collapsed) paint(); }, 1000);
+    // claude.ai swaps conversations without reloading.
+    setInterval(() => {
+      if (location.pathname !== convoKey) { convoKey = location.pathname; reset(); }
+    }, 1000);
+    // The size estimate drifts as text streams in; re-measure now and then.
+    setInterval(() => { chars = (root().textContent || '').length; }, 20000);
+    // Checklist ticks while you type.
+    document.addEventListener('input', () => { if (tab === 'prompt' && !collapsed) paint(); }, true);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
