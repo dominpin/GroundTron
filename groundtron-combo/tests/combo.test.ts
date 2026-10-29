@@ -97,6 +97,46 @@ describe('groundtron-combo', () => {
   }
 })
 
+// The bar moves with the workers, not only when the orchestrator reports: a worker
+// that finishes, or reports a step, moves it at once, one task at a time.
+describe('progress bar', () => {
+  test('grows task by task from what the agents do', async ($, on) => {
+    const w = world(on)
+    let n = 0
+    on('agent.spawn', () => ({ agentId: 'A' + ++n, model: 'claude-sonnet-5-5' }) as never)
+    await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+    await w.clock.settle()
+    await $.tool.call({
+      tool: 'mcp__groundtron-combo__progress', title: 'Demo', phase: 'delegate',
+      tasks: [{ title: 'one', tier: 'light' }, { title: 'two', tier: 'light' }, { title: 'three', tier: 'light' }],
+    } as never)
+    const ui = await $.ui.mount({ plugin: 'groundtron-combo', surface: 'terminal', component: 'AbovePrompt', props: bandProps })
+    const shown = async () => (await ui.find({ type: 'Text', text: /\d\/3|\d+%/ }))?.text ?? ''
+    const bar = async () => (await ui.find({ type: 'Text', text: /[█▒░]{4}/ }))?.text ?? ''
+    const spawn = (description: string) => $.agent.spawn({ subagentType: 'savvy-light', description, prompt: 'do it', tool_use_id: description } as never)
+
+    await spawn('one')
+    await spawn('two')
+    const started = await bar()
+    expect(started).toContain('▒')             // two workers running: the lighter layer
+    expect(started).not.toContain('█')          // nothing finished yet
+
+    // The first worker finishes. The orchestrator has reported nothing.
+    await $.turn.complete({ answer: 'ok', durationMs: 1, isAborted: false, turnId: 'a', reason: 'answer', agentId: 'A1',
+      usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0, model: 'claude-sonnet-5-5' } } as never)
+    expect(await shown()).toContain('1/3')
+
+    // The second worker reports it is halfway: the bar sits between 1 and 2 of 3.
+    await $.tool.call({ tool: 'mcp__groundtron-combo__step', agentId: 'A2', done: 1, total: 2 } as never)
+    const half = await bar()
+    const filled = (half.match(/█/g) ?? []).length
+    const all = half.length
+    expect(filled / all).toBeGreaterThan(1 / 3)
+    expect(filled / all).toBeLessThan(2 / 3)
+    await w.clock.settle()
+  })
+})
+
 const run = (command: string, args: string): CommandRunInput => ({
   command, args, origin: { kind: 'composer' }, presentation: { isFullscreen: false, columns: 80 },
 })

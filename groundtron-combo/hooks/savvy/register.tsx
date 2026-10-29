@@ -216,16 +216,36 @@ const merge = (prev: Flow | null, input: ProgressInput): Flow => {
   }
 }
 
-const label = (f: Flow): string => {
+const label = (f: Flow, lv: Live): string => {
   const s = tr()
   if (f.isFinished) return s.done
   if (f.phase === 'plan') return s.plan
   if (f.phase === 'design') return s.design
-  const count = f.total ? `${f.done}/${f.total}` : `${f.running} ${s.busy}`
+  const count = f.total ? `${lv.done}/${f.total}` : `${f.running} ${s.busy}`
   return `${f.phase === 'review' ? s.review : s.tasks} ${count}`
 }
 
-const ratio = (f: Flow): number => (f.isFinished ? 1 : f.total ? f.done / f.total : 0)
+// What the bar shows is not only what the orchestrator reported (it reports in
+// batches, so the bar jumped by several tasks at a time). It is built from what
+// the agents themselves did:
+//   done    = tasks the orchestrator accepted, or whose worker has finished, whichever is more
+//   partial = how far each running worker says it is (its `step` calls), a fraction of a task
+//   running = workers started and not yet finished (the faint layer)
+type Live = { done: number; partial: number; running: number }
+
+const liveOf = (f: Flow, list: AgentRun[]): Live => {
+  const savvy = list.filter(a => a.type.startsWith('savvy-'))
+  const titles = new Set((f.tasks ?? []).map(t => norm(t.title)).filter(Boolean))
+  const mine = (a: AgentRun): boolean => (titles.size ? titles.has(norm(a.description)) : true)
+  const finished = new Set(savvy.filter(a => a.status === 'done' && mine(a)).map(a => norm(a.description) || a.id))
+  const done = Math.min(f.total || Infinity, Math.max(f.done, finished.size))
+  const running = savvy.filter(a => a.status === 'running' && mine(a) && !finished.has(norm(a.description) || a.id))
+  const partial = running.reduce((sum, a) => sum + (a.stepTotal ? Math.min(0.95, (a.stepDone ?? 0) / a.stepTotal) : 0), 0)
+  const room = f.total ? Math.max(0, f.total - done) : 0
+  return { done, partial: Math.min(partial, room), running: Math.min(running.length, room) }
+}
+
+const ratio = (f: Flow, lv: Live): number => (f.isFinished ? 1 : f.total ? Math.min(1, (lv.done + lv.partial) / f.total) : 0)
 
 // Deterministic noise so the dither does not shimmer between redraws.
 const noise = (x: number, y: number): number => {
@@ -271,14 +291,14 @@ const fitText = (s: string, size: number, maxW: number): string => {
   return out + '…'
 }
 
-const rowSvg = (f: Flow, W: number, isWorking: boolean): string => {
+const rowSvg = (f: Flow, lv: Live, W: number, isWorking: boolean): string => {
   // Only the bar, drawn after the Windows 7 progress bar: a pale inset track,
   // a glossy green fill and a glow that sweeps across it while work goes on.
   const BAR_W = Math.max(60, W)
   const bh = BAR_H - 1
   const y0 = (H - bh) / 2
-  const fillW = Math.round(BAR_W * ratio(f))
-  const runW = f.total ? Math.round((BAR_W * Math.min(f.total, f.done + f.running)) / f.total) : 0
+  const fillW = Math.round(BAR_W * ratio(f, lv))
+  const runW = f.total ? Math.round((BAR_W * Math.min(f.total, lv.done + lv.partial + lv.running)) / f.total) : 0
   const rtl = isRtl()
   const glow = !f.isFinished && isWorking && fillW > 8
   // Right to left mirrors the fill and the glow, not the track.
@@ -313,9 +333,11 @@ ${glow ? `<g clip-path="url(#c)"><svg x="0" y="0" width="${fillW}" height="${bh}
 </svg>`
 }
 
-const barText = (f: Flow, width: number): string => {
-  const filled = Math.round(width * ratio(f))
-  return '█'.repeat(filled) + '░'.repeat(Math.max(0, width - filled))
+const barText = (f: Flow, lv: Live, width: number): string => {
+  const filled = Math.round(width * ratio(f, lv))
+  // Workers started and not finished: a lighter block after the filled part.
+  const busy = f.total && !f.isFinished ? Math.round(width * Math.min(1, (lv.done + lv.partial + lv.running) / f.total)) - filled : 0
+  return '█'.repeat(filled) + '▒'.repeat(Math.max(0, busy)) + '░'.repeat(Math.max(0, width - filled - Math.max(0, busy)))
 }
 
 // ---------------------------------------------------------------------------
@@ -786,7 +808,8 @@ export const register = (on: Parameters<Register>[0], opts: Parameters<Register>
     }
     const next = await update($, flow, p => merge(p, input))
     if (next && input.tasks?.length) await autoOpen($, next.title)
-    return { result: `ok: ${label(next ?? blank())}` }
+    const shown = next ?? blank()
+    return { result: `ok: ${label(shown, { done: shown.done, partial: 0, running: 0 })}` }
   })
 
   // A worker's own progress: the call runs in the worker's loop, so agentId names it.
@@ -1053,7 +1076,8 @@ export const register = (on: Parameters<Register>[0], opts: Parameters<Register>
     const crewButton = (
       <Button key="savvy-agents" label={`×${crew}`} plain onPress={() => void togglePane($)} />
     )
-    const percent = `${Math.round(ratio(f) * 100)}%`
+    const lv = liveOf(f, list)
+    const percent = `${Math.round(ratio(f, lv) * 100)}%`
     const dismiss = (
       <Button
         key="savvy-dismiss"
@@ -1073,7 +1097,7 @@ export const register = (on: Parameters<Register>[0], opts: Parameters<Register>
       return (
         <Box flexDirection="column">
           <Box flexDirection={isRtl() ? 'row-reverse' : 'row'} alignItems="center" gap={1}>
-            <Svg source={rowSvg(f, width, isWorking)} alt={`${f.title}: ${label(f)}, ${percent}`} width={width} height={H} />
+            <Svg source={rowSvg(f, lv, width, isWorking)} alt={`${f.title}: ${label(f, lv)}, ${percent}`} width={width} height={H} />
             {crewButton}
             {dismiss}
           </Box>
@@ -1095,8 +1119,8 @@ export const register = (on: Parameters<Register>[0], opts: Parameters<Register>
             <Text color={tone}>{`${MARK} `}</Text>
             <Text wrap="truncate-end">{f.title}</Text>
           </Box>
-          <Text color={tone}>{barText(f, width)}</Text>
-          <Text bold>{label(f)}</Text>
+          <Text color={tone}>{barText(f, lv, width)}</Text>
+          <Text bold>{label(f, lv)}</Text>
           <Text dimColor>{percent}</Text>
           <Text color={pal.accent}>▣</Text>
           {crewButton}
