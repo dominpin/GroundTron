@@ -566,8 +566,21 @@
     }, 60);
   }
 
+  // The panel is for a signed-in chat, so a visitor on the start or login page
+  // sees nothing. Read from the page alone: not on a sign-in route, no login
+  // form on screen, and a message box to type into.
+  const AUTH_PATH = /^\/(login|logout|signup|sign-up|signin|sign-in|magic-link|verify|onboarding|oauth|auth)(\/|$)/i;
+  function signedIn() {
+    if (AUTH_PATH.test(location.pathname)) return false;
+    if (document.querySelector('input[type="email"], input[type="password"], [data-testid*="login" i]')) return false;
+    return !!composer();
+  }
+
   function paintNow() {
+    if (!ui && !signedIn()) return;
+    if (ui && !signedIn()) { ui.rootEl.setAttribute('data-collapsed', '1'); ui.rootEl.style.display = 'none'; return; }
     if (!ui) ui = build();
+    ui.rootEl.style.display = '';
     const light = isLight();
     const pal = PALETTE[light ? 'light' : 'dark'];
     for (const [k, v] of Object.entries(pal)) ui.rootEl.style.setProperty('--cst-' + k, v);
@@ -638,7 +651,8 @@
     paint();
     observer.observe(document.body, { subtree: true, childList: true, characterData: true });
     // The idle figure moves on its own, and a flash has to fade.
-    setInterval(() => { if (!collapsed) paint(); }, 1000);
+    // Also until the panel first shows: it waits for a signed-in page.
+    setInterval(() => { if (!ui || ui.rootEl.style.display === 'none' || !collapsed) paint(); }, 1000);
     // claude.ai swaps conversations without reloading.
     setInterval(() => {
       if (location.pathname !== convoKey) { convoKey = location.pathname; reset(); }
