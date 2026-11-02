@@ -576,6 +576,26 @@
     return true;
   }
 
+  // A toggle next to claude.ai's own "Files" button in the chat header, so the
+  // panel is one click away without hunting for the handle on the window edge.
+  // The page re-renders its header now and then, so this runs on every tick.
+  function headerButton() {
+    const host = document.querySelector('[data-testid="wiggle-controls-actions-toggle"]');
+    let btn = document.getElementById('cst-hdrbtn');
+    if (!host || !host.parentElement) { if (btn) btn.remove(); if (ui) ui.rootEl.removeAttribute('data-hdr'); return; }
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'cst-hdrbtn';
+      btn.type = 'button';
+      btn.textContent = '◧';
+      btn.addEventListener('click', () => setCollapsed(!collapsed));
+    }
+    btn.title = 'GroundTron Side Tree';
+    btn.setAttribute('aria-pressed', collapsed ? 'false' : 'true');
+    if (btn.nextSibling !== host) host.parentElement.insertBefore(btn, host);
+    if (ui) ui.rootEl.setAttribute('data-hdr', '1');
+  }
+
   function paintNow() {
     if (!ui && !signedIn()) return;
     if (ui && !signedIn()) { ui.rootEl.setAttribute('data-collapsed', '1'); ui.rootEl.style.display = 'none'; return; }
@@ -587,6 +607,7 @@
     ui.rootEl.style.setProperty('--cst-w', width + 'px');
     ui.rootEl.setAttribute('data-theme', light ? 'light' : 'dark');
     ui.rootEl.setAttribute('data-collapsed', collapsed ? '1' : '0');
+    headerButton();
     if (collapsed) return;
     for (const b of ui.tabs.querySelectorAll('.cst-tabbtn')) {
       const which = b.getAttribute('data-tab');
@@ -654,6 +675,7 @@
     // Also until the panel first shows: it waits for a signed-in page.
     setInterval(() => { if (!ui || ui.rootEl.style.display === 'none' || !collapsed) paint(); }, 1000);
     // claude.ai swaps conversations without reloading.
+    setInterval(() => { try { if (ui) headerButton(); } catch (err) { console.warn('[side-tree]', err); } }, 1000);
     setInterval(() => {
       if (location.pathname !== convoKey) { convoKey = location.pathname; reset(); }
     }, 1000);
