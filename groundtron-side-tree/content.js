@@ -568,12 +568,12 @@
 
   // The panel is for a signed-in chat, so a visitor on the start or login page
   // sees nothing. Read from the page alone: not on a sign-in route, no login
-  // form on screen, and a message box to type into.
+  // form on screen.
   const AUTH_PATH = /^\/(login|logout|signup|sign-up|signin|sign-in|magic-link|verify|onboarding|oauth|auth)(\/|$)/i;
   function signedIn() {
     if (AUTH_PATH.test(location.pathname)) return false;
     if (document.querySelector('input[type="email"], input[type="password"], [data-testid*="login" i]')) return false;
-    return !!composer();
+    return true;
   }
 
   function paintNow() {
