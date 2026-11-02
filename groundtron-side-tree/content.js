@@ -576,24 +576,25 @@
     return true;
   }
 
-  // A toggle next to claude.ai's own "Files" button in the chat header, so the
-  // panel is one click away without hunting for the handle on the window edge.
-  // The page re-renders its header now and then, so this runs on every tick.
-  function headerButton() {
-    const host = document.querySelector('[data-testid="wiggle-controls-actions-toggle"]');
-    let btn = document.getElementById('cst-hdrbtn');
-    if (!host || !host.parentElement) { if (btn) btn.remove(); if (ui) ui.rootEl.removeAttribute('data-hdr'); return; }
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id = 'cst-hdrbtn';
-      btn.type = 'button';
-      btn.textContent = '◧';
-      btn.addEventListener('click', () => setCollapsed(!collapsed));
+  // claude.ai has its own Files panel, opened by its Files button. Where the page
+  // has one, the tree lives inside it, in the page's look, and this extension
+  // adds no button and no floating panel. Elsewhere it floats as before.
+  // 'float': no Files button on the page. 'docked': inside the open Files panel.
+  // 'closed': the Files panel is shut, so there is nothing to show.
+  function dock() {
+    const root = ui.rootEl;
+    if (!document.querySelector('[data-testid="wiggle-controls-actions-toggle"]')) {
+      root.removeAttribute('data-docked');
+      if (root.parentNode !== document.body) document.body.appendChild(root);
+      return 'float';
     }
-    btn.title = 'GroundTron Side Tree';
-    btn.setAttribute('aria-pressed', collapsed ? 'false' : 'true');
-    if (btn.nextSibling !== host) host.parentElement.insertBefore(btn, host);
-    if (ui) ui.rootEl.setAttribute('data-hdr', '1');
+    root.setAttribute('data-docked', '1');
+    const region = document.querySelector('[role="region"][aria-label="Files"]');
+    const first = region && region.getAttribute('aria-hidden') !== 'true' && region.querySelector('h3');
+    const host = first ? (first.closest('.flex-col') || first).parentElement : null;
+    if (!host) { if (root.parentNode) root.remove(); return 'closed'; }
+    if (root.parentNode !== host || host.firstChild !== root) host.insertBefore(root, host.firstChild);
+    return 'docked';
   }
 
   function paintNow() {
@@ -606,9 +607,11 @@
     for (const [k, v] of Object.entries(pal)) ui.rootEl.style.setProperty('--cst-' + k, v);
     ui.rootEl.style.setProperty('--cst-w', width + 'px');
     ui.rootEl.setAttribute('data-theme', light ? 'light' : 'dark');
-    ui.rootEl.setAttribute('data-collapsed', collapsed ? '1' : '0');
-    headerButton();
-    if (collapsed) return;
+    const mode = dock();
+    if (mode === 'closed') return;
+    const shut = collapsed && mode === 'float';
+    ui.rootEl.setAttribute('data-collapsed', shut ? '1' : '0');
+    if (shut) return;
     for (const b of ui.tabs.querySelectorAll('.cst-tabbtn')) {
       const which = b.getAttribute('data-tab');
       b.classList.toggle('cst-on', which === tab);
@@ -673,9 +676,8 @@
     observer.observe(document.body, { subtree: true, childList: true, characterData: true });
     // The idle figure moves on its own, and a flash has to fade.
     // Also until the panel first shows: it waits for a signed-in page.
-    setInterval(() => { if (!ui || ui.rootEl.style.display === 'none' || !collapsed) paint(); }, 1000);
+    setInterval(() => { if (!ui || ui.rootEl.style.display === 'none' || ui.rootEl.hasAttribute('data-docked') || !collapsed) paint(); }, 1000);
     // claude.ai swaps conversations without reloading.
-    setInterval(() => { try { if (ui) headerButton(); } catch (err) { console.warn('[side-tree]', err); } }, 1000);
     setInterval(() => {
       if (location.pathname !== convoKey) { convoKey = location.pathname; reset(); }
     }, 1000);

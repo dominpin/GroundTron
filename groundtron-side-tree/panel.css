@@ -368,26 +368,44 @@
   #cst-root .cst-check, #cst-root .cst-starter { padding-top: 10px; padding-bottom: 10px; }
 }
 
-/* The toggle placed next to claude.ai's own "Files" button; it lives outside #cst-root. */
-#cst-hdrbtn {
-  all: unset;
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-right: 4px;
-  border-radius: 8px;
-  font-size: 16px;
-  line-height: 1;
-  color: #D97757;
-  cursor: pointer;
-  opacity: 0.7;
+/* Docked inside claude.ai's own Files panel: no frame of its own, the page's
+   font and text colour, headings like the panel's "Artifacts" and "Content". */
+#cst-root[data-docked="1"] {
+  --cst-bg: transparent;
+  --cst-fg: currentColor;
+  position: static;
+  inset: auto;
+  z-index: auto;
+  width: 100%;
+  margin-bottom: 20px;
+  font-family: inherit;
+  font-size: 13px;
+  color: inherit;
 }
-#cst-hdrbtn:hover, #cst-hdrbtn[aria-pressed="true"] { opacity: 1; background: rgba(217, 119, 87, 0.15); }
-#cst-hdrbtn:focus-visible { outline: 2px solid #D97757; }
-/* With the header button, the edge handle is redundant. */
-#cst-root[data-hdr="1"] .cst-tab { display: none !important; }
-/* With the header button the panel is closed by clicking that button again. */
-#cst-root[data-hdr="1"] .cst-x { display: none !important; }
+#cst-root[data-docked="1"] .cst-tab,
+#cst-root[data-docked="1"] .cst-grip,
+#cst-root[data-docked="1"] .cst-x { display: none !important; }
+#cst-root[data-docked="1"] .cst-panel {
+  position: static;
+  width: auto;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+#cst-root[data-docked="1"] .cst-meter { padding: 0 0 8px; border-bottom: 0; }
+#cst-root[data-docked="1"] .cst-tabs { padding: 0 0 8px; border-bottom: 0; gap: 14px; }
+#cst-root[data-docked="1"] .cst-tabbtn {
+  padding: 0;
+  border-radius: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+  opacity: 0.55;
+  background: none;
+  box-shadow: none;
+}
+#cst-root[data-docked="1"] .cst-tabbtn.cst-on { opacity: 1; background: none; box-shadow: none; }
+#cst-root[data-docked="1"] .cst-body { flex: none; overflow: visible; padding: 0; }
+#cst-root[data-docked="1"] .cst-opt.cst-on { color: #1b1a19; }

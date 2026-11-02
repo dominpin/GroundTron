@@ -6,7 +6,7 @@
 <title>Side Tree harness</title>
 <link rel="stylesheet" href="../panel.css">
 <style>
-  body { background:#1b1a19; color:#ecebe8; font:14px/1.5 -apple-system,Segoe UI,sans-serif; margin:0; padding:24px; padding-right:340px; }
+  body { background:#1b1a19; color:#ecebe8; font:14px/1.5 -apple-system,Segoe UI,sans-serif; margin:0; padding:24px; padding-right:380px; }
   main { max-width:620px; }
   .msg { border:1px solid #302e2c; border-radius:8px; padding:10px 12px; margin-bottom:10px; }
   .tool { font-family:ui-monospace,Consolas,monospace; color:#9a9a96; }
@@ -16,7 +16,7 @@
 </head>
 <body>
 <main>
-  <div style="display:flex;gap:4px"><span>naglowek</span><button data-testid="wiggle-controls-actions-toggle" aria-label="Files">Files</button><button>Share</button></div>
+  <div style="display:flex;gap:4px"><span>naglowek</span><button data-testid="wiggle-controls-actions-toggle" aria-label="Files" onclick="var r=document.getElementById('files-region');r.hidden=!r.hidden;r.setAttribute('aria-hidden',r.hidden)">Files</button><button>Share</button></div>
   <h1>Harness</h1>
   <div class="msg">Przejrzyj kod i popraw walidacje.</div>
   <div class="msg"><div class="tool">Read(src/app/main.ts)</div></div>
@@ -36,6 +36,7 @@
   <button onclick="tasks(3)">lista zadan 3/4</button>
   <button onclick="document.querySelector('#composer').innerText='dodaj limitowanie zapytan do @src/app/main.ts, zejdz ponizej 200KB, uruchom testy i pokaz wynik w tabeli'">wypelnij prompt</button>
 </div>
+<aside id="files-region" role="region" aria-label="Files" aria-hidden="false" style="position:fixed;right:0;top:0;bottom:0;width:342px;padding:16px;background:#262524;overflow:auto"><div style="display:flex;flex-direction:column;gap:20px"><div class="flex flex-col gap-3"><h3 style="margin:0;font-size:14px;font-weight:500">Artifacts</h3><div>Lab02 sprawozdanie</div></div><div class="flex flex-col gap-3"><h3 style="margin:0;font-size:14px;font-weight:500">Content</h3></div></div></aside>
 <script>
 function tasks(n) {
   const names = ['Przeczytaj kod', 'Napisz poprawke', 'Uruchom testy', 'Opisz zmiany'];
