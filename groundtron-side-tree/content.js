@@ -305,26 +305,66 @@
     return out;
   }
 
-  // Files that claude.ai's own Files panel already lists (its "Artifacts" cards
-  // and "Content" thumbnails) are left out of the tree, so nothing shows twice.
-  // Compared by name without folder, extension, case or punctuation, because the
-  // panel shows a title ("Lab02 sprawozdanie") where a path has Lab02_Sprawozdanie.docx.
+  // Page items are matched against the files of the conversation by name without
+  // folder, extension, case or punctuation, because the panel shows a title
+  // ("Lab02 sprawozdanie") where a path has Lab02_Sprawozdanie.docx.
   const dupKey = n => String(n).split(/[\\/]/).pop().replace(/\.[A-Za-z0-9]{1,8}$/, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
-  function listedByPage() {
+
+  // The Files panel's own "Artifacts" cards and "Content" thumbnails, read from
+  // the page. They join the tree as two folders, and the panel's sections are
+  // hidden while the tree is on screen, so there is one list instead of two.
+  // A row opens the original card or thumbnail by clicking it, so whatever the
+  // page does with it (a preview, say) still happens.
+  function pagePanel() {
     const region = document.querySelector('[role="region"][aria-label="Files"]');
-    const out = new Set();
-    if (!region || !ui || ui.rootEl.getAttribute('data-docked') !== '1') return out;
-    for (const n of region.querySelectorAll('[data-testid="files-panel-card-open"][aria-label]')) out.add(dupKey(n.getAttribute('aria-label').replace(/^View\s+/i, '')));
-    for (const n of region.querySelectorAll('[data-testid="file-thumbnail"] img[alt]')) out.add(dupKey(n.getAttribute('alt')));
-    out.delete('');
-    return out;
+    if (!region || !ui || ui.rootEl.getAttribute('data-docked') !== '1') return { items: [], groups: new Map() };
+    const items = [];
+    const groups = new Map(); // folder name -> { section, all }
+    const used = new Set();
+    const add = (node, label, open, download) => {
+      const section = node.closest('.flex-col.gap-3');
+      if (!section || section.closest('#cst-root')) return;
+      const head = section.querySelector('h3');
+      const group = ((head && head.textContent) || '').trim().replace(/\//g, '∕') || 'Files';
+      if (!groups.has(group)) {
+        const bar = section.firstElementChild && section.firstElementChild.querySelector('button');
+        groups.set(group, { section, all: bar ? () => bar.click() : null });
+      }
+      const name = String(label || '').trim().replace(/\//g, '∕') || '?';
+      let path = group + '/' + name;
+      for (let n = 2; used.has(path); n++) path = `${group}/${name} (${n})`;
+      used.add(path);
+      items.push({ path, name, group, open, download });
+    };
+    for (const n of region.querySelectorAll('[data-testid="files-panel-card-open"]')) {
+      const card = n.closest('[data-file-row-card]') || n.parentElement;
+      const dl = [...card.querySelectorAll('button')].pop();
+      add(n, (n.getAttribute('aria-label') || n.textContent).replace(/^View\s+/i, ''), () => n.click(), dl ? () => dl.click() : null);
+    }
+    for (const n of region.querySelectorAll('[data-testid="file-thumbnail"]')) {
+      const img = n.querySelector('img');
+      const btn = n.querySelector('button') || n;
+      add(n, img && img.getAttribute('alt'), () => btn.click(), null);
+    }
+    return { items, groups };
+  }
+
+  // Hides the Files panel's own sections while the tree shows them; undone
+  // whenever the tree is not the thing on screen.
+  function mergeSections(groups) {
+    const keep = new Set([...groups.values()].map(g => g.section));
+    for (const n of document.querySelectorAll('[data-cst-merged]')) if (!keep.has(n)) n.removeAttribute('data-cst-merged');
+    for (const n of keep) n.setAttribute('data-cst-merged', '1');
   }
 
   function renderFiles(body) {
-    const listed = listedByPage();
+    const page = pagePanel();
+    mergeSections(page.groups);
+    const listed = new Set(page.items.map(i => dupKey(i.name)));
     const list = [...files.values()].filter(f => (showMentions || f.kind !== 'mention') && !listed.has(dupKey(f.path)));
     const paths = list.map(f => f.path);
-    const sig = paths.slice().sort().join('|') + '#' + showMentions + '#' + [...closedDirs].sort().join('|') + '#' + lang;
+    const pageByPath = new Map(page.items.map(i => [i.path, i]));
+    const sig = paths.slice().sort().join('|') + '#' + page.items.map(i => i.path).join('|') + '#' + showMentions + '#' + [...closedDirs].sort().join('|') + '#' + lang;
 
     if (sig !== lastSig) {
       lastSig = sig;
@@ -345,11 +385,11 @@
             if (last) last.row.scrollIntoView({ block: 'center' });
           }
         }),
-        el('span', { class: 'cst-count', text: paths.length ? t('count', paths.length) : '' }),
+        el('span', { class: 'cst-count', text: paths.length + page.items.length ? t('count', paths.length + page.items.length) : '' }),
       ]);
       body.appendChild(bar);
 
-      if (paths.length === 0) {
+      if (paths.length + page.items.length === 0) {
         body.appendChild(el('p', { class: 'cst-empty', text: t('empty') }));
         return;
       }
@@ -357,7 +397,8 @@
       if (prefix) body.appendChild(el('div', { class: 'cst-root-line', text: prefix, title: prefix }));
       const tree = el('div', { class: 'cst-tree' });
       let hideBelow = Infinity; // depth of a closed folder whose contents are skipped
-      for (const row of rowsOf(treeOf(paths, prefix), 0, [])) {
+      const allRows = [...rowsOf(treeOf(paths, prefix), 0, []), ...rowsOf(treeOf(page.items.map(i => i.path), ''), 0, [])];
+      for (const row of allRows) {
         if (row.depth > hideBelow) continue;
         hideBelow = Infinity;
         if (row.kind === 'dir') {
@@ -376,14 +417,21 @@
               },
             }),
             el('span', { class: 'cst-name', text: row.name }),
+            row.depth === 0 && page.groups.get(row.name) && page.groups.get(row.name).all &&
+              el('span', { class: 'cst-badge cst-dl', text: '↓', title: row.name, onclick: e => { e.stopPropagation(); page.groups.get(row.name).all(); } }),
           ]));
         } else {
-          const r = el('div', { class: 'cst-row cst-file', style: `padding-left:${6 + row.depth * 12}px`, title: row.path, onclick: () => jumpTo(row.path) }, [
+          const it = pageByPath.get(row.path);
+          const r = el('div', { class: 'cst-row cst-file', style: `padding-left:${6 + row.depth * 12}px`, title: it ? it.name : row.path, onclick: () => (it ? it.open() : jumpTo(row.path)) }, [
             el('span', { class: 'cst-glyph' }),
             el('span', { class: 'cst-name', text: row.name }),
             el('span', { class: 'cst-badge' }),
+            it && it.download && el('span', { class: 'cst-badge cst-dl', text: '↓', onclick: e => { e.stopPropagation(); it.download(); } }),
           ]);
-          rowEls.set(row.path, r);
+          if (it) {
+            r.setAttribute('data-kind', 'page');
+            r.querySelector('.cst-glyph').textContent = '◆';
+          } else rowEls.set(row.path, r);
           tree.appendChild(r);
         }
       }
@@ -624,6 +672,7 @@
     ui.rootEl.style.setProperty('--cst-w', width + 'px');
     ui.rootEl.setAttribute('data-theme', light ? 'light' : 'dark');
     const mode = dock();
+    if (mode !== 'docked') mergeSections(new Map());
     if (mode === 'closed') return;
     const shut = collapsed && mode === 'float';
     ui.rootEl.setAttribute('data-collapsed', shut ? '1' : '0');
@@ -648,7 +697,7 @@
       promptBoxes = null;
     }
     if (tab === 'files') renderFiles(ui.body);
-    else renderPrompt(ui.body);
+    else { mergeSections(new Map()); renderPrompt(ui.body); }
   }
 
   // --- watching the page ---------------------------------------------------

@@ -409,3 +409,9 @@
 #cst-root[data-docked="1"] .cst-tabbtn.cst-on { opacity: 1; background: none; box-shadow: none; }
 #cst-root[data-docked="1"] .cst-body { flex: none; overflow: visible; padding: 0; }
 #cst-root[data-docked="1"] .cst-opt.cst-on { color: #1b1a19; }
+
+/* Merged into the tree: the Files panel's own "Artifacts" and "Content" sections. */
+[data-cst-merged] { display: none !important; }
+#cst-root .cst-dl { margin-left: auto; opacity: 0.6; cursor: pointer; }
+#cst-root .cst-dl:hover { opacity: 1; color: var(--cst-accent); }
+#cst-root .cst-row[data-kind="page"] .cst-glyph { color: var(--cst-muted); }
