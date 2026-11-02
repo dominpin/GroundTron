@@ -305,8 +305,24 @@
     return out;
   }
 
+  // Files that claude.ai's own Files panel already lists (its "Artifacts" cards
+  // and "Content" thumbnails) are left out of the tree, so nothing shows twice.
+  // Compared by name without folder, extension, case or punctuation, because the
+  // panel shows a title ("Lab02 sprawozdanie") where a path has Lab02_Sprawozdanie.docx.
+  const dupKey = n => String(n).split(/[\\/]/).pop().replace(/\.[A-Za-z0-9]{1,8}$/, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  function listedByPage() {
+    const region = document.querySelector('[role="region"][aria-label="Files"]');
+    const out = new Set();
+    if (!region || !ui || ui.rootEl.getAttribute('data-docked') !== '1') return out;
+    for (const n of region.querySelectorAll('[data-testid="files-panel-card-open"][aria-label]')) out.add(dupKey(n.getAttribute('aria-label').replace(/^View\s+/i, '')));
+    for (const n of region.querySelectorAll('[data-testid="file-thumbnail"] img[alt]')) out.add(dupKey(n.getAttribute('alt')));
+    out.delete('');
+    return out;
+  }
+
   function renderFiles(body) {
-    const list = [...files.values()].filter(f => showMentions || f.kind !== 'mention');
+    const listed = listedByPage();
+    const list = [...files.values()].filter(f => (showMentions || f.kind !== 'mention') && !listed.has(dupKey(f.path)));
     const paths = list.map(f => f.path);
     const sig = paths.slice().sort().join('|') + '#' + showMentions + '#' + [...closedDirs].sort().join('|') + '#' + lang;
 

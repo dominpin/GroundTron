@@ -36,7 +36,7 @@
   <button onclick="tasks(3)">lista zadan 3/4</button>
   <button onclick="document.querySelector('#composer').innerText='dodaj limitowanie zapytan do @src/app/main.ts, zejdz ponizej 200KB, uruchom testy i pokaz wynik w tabeli'">wypelnij prompt</button>
 </div>
-<aside id="files-region" role="region" aria-label="Files" aria-hidden="false" style="position:fixed;right:0;top:0;bottom:0;width:342px;padding:16px;background:#262524;overflow:auto"><div style="display:flex;flex-direction:column;gap:20px"><div class="flex flex-col gap-3"><h3 style="margin:0;font-size:14px;font-weight:500">Artifacts</h3><div>Lab02 sprawozdanie</div></div><div class="flex flex-col gap-3"><h3 style="margin:0;font-size:14px;font-weight:500">Content</h3></div></div></aside>
+<aside id="files-region" role="region" aria-label="Files" aria-hidden="false" style="position:fixed;right:0;top:0;bottom:0;width:342px;padding:16px;background:#262524;overflow:auto"><div style="display:flex;flex-direction:column;gap:20px"><div class="flex flex-col gap-3"><h3 style="margin:0;font-size:14px;font-weight:500">Artifacts</h3><span data-testid="files-panel-card-open" aria-label="View validate">validate</span></div><div class="flex flex-col gap-3"><h3 style="margin:0;font-size:14px;font-weight:500">Content</h3></div></div></aside>
 <script>
 function tasks(n) {
   const names = ['Przeczytaj kod', 'Napisz poprawke', 'Uruchom testy', 'Opisz zmiany'];
