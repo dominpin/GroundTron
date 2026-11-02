@@ -389,3 +389,5 @@
 #cst-hdrbtn:focus-visible { outline: 2px solid #D97757; }
 /* With the header button, the edge handle is redundant. */
 #cst-root[data-hdr="1"] .cst-tab { display: none !important; }
+/* With the header button the panel is closed by clicking that button again. */
+#cst-root[data-hdr="1"] .cst-x { display: none !important; }
