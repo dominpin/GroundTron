@@ -391,8 +391,38 @@ export function freshState(): State {
 // Module scope, not register's: the shared-event hooks below read it too.
 let s = freshState()
 
+type ModelSwitch = {
+  from_model: string
+  to_model: string
+  source: 'command' | 'picker' | 'sdk' | 'auto' | 'resume'
+  context_tokens: number
+  prompt_cache_warm: boolean
+  cache_ttl: '5m' | '1h'
+  estimated_cache_write_usd: number
+  pricing: 'configured' | 'catalog' | 'default'
+}
+
+// Every model keeps its own prompt cache, so changing model re-writes the whole
+// context on the new one. Said only when that costs something: a warm cache, a
+// real context, and a switch that is not just a resumed session getting its own
+// model back. The price is the engine's own estimate, not a table kept here.
+export function modelSwitchText(e: ModelSwitch): string | null {
+  if (e.source === 'resume' || e.from_model === e.to_model) return null
+  if (!e.prompt_cache_warm || e.context_tokens <= 0) return null
+  const assumed = e.pricing === 'default' ? ' (price assumed: the new model is not in the price list)' : ''
+  return `switched ${e.from_model} → ${e.to_model} while the ${e.cache_ttl} cache was warm. The next request re-writes ` +
+    `${fmtTok(e.context_tokens)} tokens on the new model, about ${fmtUsd(e.estimated_cache_write_usd)}${assumed}. ` +
+    `Worth it only if the new model is needed now.`
+}
+
 export const register = (on: Parameters<Register>[0]) => {
   s = freshState()
+
+  on('classic.PostModelSwitch', async ($, e, next) => {
+    const text = modelSwitchText(e)
+    if (text !== null) $.ui.log(`cache-tax: ${text}`)
+    return next(e)
+  })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const rest = await next(e)

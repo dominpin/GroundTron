@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
 import type { CommandRunInput, On, RenderPropsOf, SessionStartInput } from 'claude-code'
+import { modelSwitchText } from '../hooks/cachetax/register'
 
 const START = 1_000_000
 
@@ -134,6 +135,33 @@ describe('progress bar', () => {
     expect(filled / all).toBeGreaterThan(1 / 3)
     expect(filled / all).toBeLessThan(2 / 3)
     await w.clock.settle()
+  })
+})
+
+describe('cache-tax model switch note', () => {
+  const base = {
+    from_model: 'claude-opus-5-5', to_model: 'claude-sonnet-5-5', source: 'command' as const,
+    context_tokens: 120_000, prompt_cache_warm: true, cache_ttl: '1h' as const,
+    estimated_cache_write_usd: 0.48, pricing: 'catalog' as const,
+  }
+
+  test('says what a switch costs while the cache is warm', () => {
+    const text = modelSwitchText(base)
+    expect(text).toContain('claude-opus-5-5 → claude-sonnet-5-5')
+    expect(text).toContain('120k tokens')
+    expect(text).toContain('$0.48')
+    expect(text).toContain('1h cache')
+  })
+
+  test('says nothing when nothing is lost', () => {
+    expect(modelSwitchText({ ...base, prompt_cache_warm: false })).toBeNull()
+    expect(modelSwitchText({ ...base, context_tokens: 0 })).toBeNull()
+    expect(modelSwitchText({ ...base, source: 'resume' })).toBeNull()
+    expect(modelSwitchText({ ...base, to_model: base.from_model })).toBeNull()
+  })
+
+  test('marks a price the engine had to assume', () => {
+    expect(modelSwitchText({ ...base, pricing: 'default' })).toContain('price assumed')
   })
 })
 
