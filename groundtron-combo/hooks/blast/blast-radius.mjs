@@ -214,9 +214,62 @@ function classifySegment(segment, dir, pushed) {
       const flags = args.filter((a) => a.startsWith("-"));
       const recursive = flags.some((f) => f === "--recursive" || (/^-[^-]/.test(f) && /[rR]/.test(f)));
       const force = flags.some((f) => f === "--force" || (/^-[^-]/.test(f) && f.includes("f")));
-      if (recursive || force) {
-        const targets = args.filter((a) => !a.startsWith("-") || a === "-");
+      const targets = args.filter((a) => !a.startsWith("-") || a === "-");
+      // A plain `rm *.log` removes many files at once, so a wildcard counts too.
+      if (recursive || force || targets.some((t) => /[*?[]/.test(t))) {
         return { kind: "rm", label: `rm ${flags.join(" ")}`.trim(), targets, dir };
+      }
+    }
+    if (cmd === "shred" || cmd === "truncate" || cmd === "unlink") {
+      const targets = [];
+      for (let i = 0; i < args.length; i += 1) {
+        if (cmd === "truncate" && ["-s", "--size", "-r", "--reference"].includes(args[i])) {
+          i += 1; // the option's value is not a file
+        } else if (!args[i].startsWith("-")) {
+          targets.push(args[i]);
+        }
+      }
+      return { kind: "rm", verb: cmd === "unlink" ? "delete" : "overwrite", label: cmd, targets, dir };
+    }
+    if (cmd === "find" && args.includes("-delete")) {
+      // -exec and friends would run during measuring, so they are never measured.
+      const unsafe = args.some((a) => /^-(?:exec|execdir|ok|okdir|fprint0?|fprintf|fls)$/.test(a));
+      return unsafe
+        ? { kind: "opaque", label: "find -delete", note: "This find also runs commands or writes files, so it can't be measured safely.", dir }
+        : { kind: "find-delete", label: "find -delete", args, dir };
+    }
+    if (cmd === "dd") {
+      const target = args.find((a) => a.startsWith("of="));
+      if (target !== undefined && target !== "of=/dev/null") {
+        return { kind: "opaque", label: `dd ${target}`, note: "dd overwrites its target from the start; how much depends on its other options.", dir };
+      }
+    }
+    if (["bash", "sh", "zsh", "dash"].includes(cmd)) {
+      // `bash -c "rm -rf x"` is still rm -rf x.
+      const at = args.findIndex((a) => /^-[A-Za-z]*c[A-Za-z]*$/.test(a));
+      if (at >= 0 && args[at + 1] !== undefined) {
+        const inner = classify(args[at + 1]);
+        if (inner !== null) {
+          return inner;
+        }
+      }
+    }
+    if (cmd === "eval") {
+      const inner = classify(args.join(" "));
+      if (inner !== null) {
+        return inner;
+      }
+    }
+    if (cmd === "xargs") {
+      let i = 0;
+      while (i < args.length && args[i].startsWith("-")) {
+        i += ["-I", "-n", "-P", "-d", "-E", "-L", "-s", "-a"].includes(args[i]) ? 2 : 1;
+      }
+      const inner = args.slice(i);
+      const name = (inner[0] ?? "").replace(/^.*\//, "");
+      const innerRisk = inner.length > 0 ? classifySegment(inner.join(" "), dir, pushed) : null;
+      if (["rm", "shred", "truncate", "unlink"].includes(name) || (innerRisk !== null && innerRisk.cd === undefined)) {
+        return { kind: "opaque", label: `xargs ${name}`, note: "The file names come from the pipe, so they can't be listed before it runs.", dir };
       }
     }
     if (cmd === "git") {
@@ -301,6 +354,12 @@ async function measure($, risk, cwd) {
     if (risk.kind === "rm") {
       return await measureRm($, risk, cwd);
     }
+    if (risk.kind === "find-delete") {
+      return await measureFind($, risk, cwd);
+    }
+    if (risk.kind === "opaque") {
+      return { summary: `${risk.label}: not measured`, lines: [], note: risk.note };
+    }
     if (risk.kind === "migrate") {
       return await measureMigrations($, risk, cwd);
     }
@@ -332,21 +391,55 @@ echo "$files $(( \${kb:-0} * 1024 )) \${#paths[@]}"
 find "\${paths[@]}" \\( -type f -o -type l \\) 2>/dev/null | head -n ${LIST_MAX}
 `;
 
+// What find would delete: the same find with -delete swapped for -print. The
+// arguments reach bash as arguments, never as source, and -exec and friends
+// were ruled out in classifySegment. Each one is sent as "x" plus its hex, because
+// Git Bash on Windows expands a wildcard like *.tmp in its own arguments before
+// the script runs, and find has to see the pattern itself.
+const FIND_SCRIPT = `
+args=()
+for h in "$@"; do
+  h=\${h#x}; a=""
+  for ((i = 0; i < \${#h}; i += 2)); do printf -v c "\\\\x\${h:i:2}"; a+=$c; done
+  args+=("$a")
+done
+list=$(find "\${args[@]}" -print 2>/dev/null)
+if [[ -z "$list" ]]; then echo 0; else printf '%s\\n' "$list" | wc -l | tr -d ' '; printf '%s\\n' "$list" | head -n ${LIST_MAX}; fi
+`;
+
+async function measureFind($, risk, cwd) {
+  const hex = (text) => Array.from(unescape(encodeURIComponent(text)), (c) => c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
+  const encoded = risk.args.filter((a) => a !== "-delete").map((a) => `x${hex(a)}`);
+  const run = await $.process.run(["bash", "-c", FIND_SCRIPT, "blast-radius", ...encoded], { cwd, timeoutMs: 15000 });
+  const [head, ...rest] = run.stdout.split("\n").filter((l) => l !== "");
+  const found = Number(head ?? 0);
+  if (!found) {
+    return { summary: "find -delete: nothing matches", lines: [], note: "Nothing would be deleted." };
+  }
+  return {
+    summary: `delete ${found} ${found === 1 ? "path" : "paths"}`,
+    lines: rest.map((l) => l.replace(/^\.\//, "")),
+    more: Math.max(0, found - rest.length),
+    note: "Counted by running the same find with -print.",
+  };
+}
+
 async function measureRm($, risk, cwd) {
+  const verb = risk.verb ?? "delete";
   if (risk.targets.length === 0) {
-    return { summary: "rm with no paths", lines: [], note: "No paths to expand." };
+    return { summary: `${risk.label} with no paths`, lines: [], note: "No paths to expand." };
   }
   const run = await $.process.run(["bash", "-c", RM_SCRIPT, "blast-radius", ...risk.targets], { cwd, timeoutMs: 15000 });
   const [head, ...rest] = run.stdout.split("\n").filter((l) => l !== "");
   const [files, bytes, found] = (head ?? "0 0 0").split(" ").map(Number);
   if (!found) {
-    return { summary: `delete nothing: no file matches ${risk.targets.join(" ")}`, lines: [], note: "The paths don't exist, so rm has nothing to remove." };
+    return { summary: `${verb} nothing: no file matches ${risk.targets.join(" ")}`, lines: [], note: `The paths don't exist, so ${risk.label} has nothing to touch.` };
   }
   if (!files) {
-    return { summary: `delete ${found} ${found === 1 ? "path" : "paths"} with no files in ${found === 1 ? "it" : "them"}`, lines: [], note: `Paths: ${risk.targets.join(" ")}` };
+    return { summary: `${verb} ${found} ${found === 1 ? "path" : "paths"} with no files in ${found === 1 ? "it" : "them"}`, lines: [], note: `Paths: ${risk.targets.join(" ")}` };
   }
   return {
-    summary: `delete ${files} ${files === 1 ? "file" : "files"} (about ${size(bytes)})`,
+    summary: `${verb} ${files} ${files === 1 ? "file" : "files"} (about ${size(bytes)})`,
     lines: rest.map((l) => l.replace(/^\.\//, "")),
     more: Math.max(0, files - rest.length),
     note: `Paths: ${risk.targets.join(" ")}`,
