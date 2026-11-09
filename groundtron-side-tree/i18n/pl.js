@@ -23,6 +23,10 @@ CST_I18N.pl = {
     target: ['Podaj mierzalny cel', 'Przy wydajności lub pokryciu podaj liczbę i próg, żeby było jasne, kiedy jest skończone.', 'zejdź z rozmiarem bundla poniżej 200KB i pokaż, co usunąłeś'],
     artifact: ['Dołącz artefakt', 'Wklej błąd, log, zrzut ekranu albo wskaż plik przez @. Claude czyta źródło zamiast Twojego opisu źródła.', 'dlaczego build się wysypuje? @build.log'],
     format: ['Powiedz, jak ma wyglądać odpowiedź', 'Nazwij format, długość albo odbiorcę, żeby odpowiedź pasowała do tego, jak jej użyjesz.', 'wyjaśnij logikę ponawiania płatności jako stronę HTML z diagramem, potem otwórz ją w przeglądarce'],
+    scope: ['Ogranicz zakres', 'Powiedz, czego nie ruszać ani nie dodawać, żeby Claude nie dorzucił niezamówionych zmian.', 'popraw walidację e-maila w formularzu rejestracji, nie zmieniaj reszty formularza i nie dodawaj nowych funkcji'],
+    stop: ['Powiedz, kiedy przestać', 'Nazwij warunek zakończenia, żeby Claude nie ciągnął pracy dalej niż trzeba.', 'napraw padający test UserAuth i zatrzymaj się, gdy cały pakiet testów przechodzi'],
+    length: ['Ogranicz długość odpowiedzi', 'Podaj długość w zdaniach lub akapitach, a nie w słowach.', 'wyjaśnij, co robi ten moduł, w trzech zdaniach'],
+    unknown: ['Pozwól na „nie wiem”', 'Zezwól na przyznanie się do niewiedzy, żeby Claude nie zgadywał, gdy brakuje danych.', 'jeśli nie znajdziesz tej funkcji w repozytorium, powiedz, że jej nie ma, zamiast zgadywać'],
   },
   starters: ['Poznaj repozytorium', 'Znajdź, gdzie coś się dzieje', 'Napraw padający test', 'Napisz testy i je uruchom', 'Przejrzyj zmiany przed commitem'],
   principles: [

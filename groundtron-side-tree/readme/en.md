@@ -85,4 +85,7 @@ nothing anywhere.
   and there will be no progress bar.
 - The tree makes sense where Claude touches files, that is in Claude Code in the browser.
   In an ordinary chat there is usually nothing to collect.
-- The "cold cache" threshold (5 minutes, then an hour) is my assumption, not a reading.
+- The "cold cache" threshold (5 minutes, then an hour) is an assumption, not a reading, and **I
+  have not checked it for chat on `claude.ai`**. The `groundtron-combo` mod in Claude Code assumes
+  an hour. How long the cache lives may depend on the plan and how you sign in, so treat the
+  meter's colours as a rough guide.

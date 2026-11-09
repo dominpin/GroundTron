@@ -563,13 +563,17 @@
 
   let promptBoxes = null;
 
+  // A pattern is shown only in a language that has its text, so a language that
+  // has not been given a newer check yet simply goes without it.
+  const shownPatterns = () => CST_DOCS.patterns.filter(p => CST_I18N[lang].patterns[p.id]);
+
   function renderPrompt(body) {
     if (!promptBoxes) {
       body.textContent = '';
       body.appendChild(el('p', { class: 'cst-lead', text: t('lead') }));
       const checks = el('div', { class: 'cst-checks' });
       const rows = new Map();
-      for (const p of CST_DOCS.patterns) {
+      for (const p of shownPatterns()) {
         const r = el('button', { class: 'cst-check', title: t('checkTitle'), onclick: ev => {
           if (r.classList.contains('cst-ok')) return;
           flashDone(r, insertPrompt(CST_I18N[lang].patterns[p.id][2]));
@@ -609,7 +613,7 @@
     const draft = draftText()
       .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/ł/g, 'l').replace(/Ł/g, 'L');
-    for (const p of CST_DOCS.patterns) {
+    for (const p of shownPatterns()) {
       const row = promptBoxes.get(p.id);
       let ok = false;
       try { ok = draft.trim() ? !!p.test(draft) : false; } catch { ok = false; }

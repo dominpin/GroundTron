@@ -33,6 +33,24 @@ globalThis.CST_DOCS = {
       id: 'format',
       test: t => /\b(punkt\w*|list[aeiyo]\w*|tabel\w*|html|markdown|diagram\w*|krotko|zwiez\w*|akapit\w*|format\w*|zdani\w*|bullet|table|short)\b/i.test(t),
     },
+    // The four below have texts in Polish and English only for now; a language
+    // without one does not show that check.
+    {
+      id: 'scope',
+      test: t => /\b(tylko|wylacznie|nie dodawaj|nie zmieniaj|nie ruszaj|bez dodatkowych|nic wiecej|only|do not add|don.?t add|do not change|don.?t change|without adding|nothing else|no extra)\b/i.test(t),
+    },
+    {
+      id: 'stop',
+      test: t => /(zatrzymaj sie|stop po|na tym koncz|gdy testy|kiedy testy|gdy skonczysz|kiedy skonczysz|stop after|stop when|then stop|and stop|once the tests?|when the tests?|when you are done)/i.test(t),
+    },
+    {
+      id: 'length',
+      test: t => /\b(\d+|jedn\w*|dw\w*|trz\w*|cztere\w*|piec\w*|one|two|three|four|five)[ -]*(zdan\w*|sentences?|akapit\w*|paragraphs?)\b|\bnie wiecej niz\b|\bat most\b|\bno more than\b/i.test(t),
+    },
+    {
+      id: 'unknown',
+      test: t => /(jesli nie wiesz|jezeli nie wiesz|powiedz,? ze nie wiesz|nie zgaduj|zamiast zgadywac|zgadywac|if you do not know|if you don.?t know|do not guess|don.?t guess|instead of guess\w*|rather than guess\w*|without guess\w*|say you don.?t know)/i.test(t),
+    },
   ],
 
   // The five starter prompts from the Claude Code prompt library. Their labels

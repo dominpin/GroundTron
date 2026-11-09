@@ -23,6 +23,10 @@ CST_I18N.en = {
     target: ['State a measurable goal', 'For performance or coverage give a number and a threshold, so it is clear when it is done.', 'get the bundle size below 200KB and show what you removed'],
     artifact: ['Attach an artifact', 'Paste the error, the log, a screenshot or point to a file with @. Claude reads the source instead of your description of it.', 'why does the build fail? @build.log'],
     format: ['Say what the answer should look like', 'Name the format, the length or the audience, so the answer fits how you will use it.', 'explain the payment retry logic as an HTML page with a diagram, then open it in the browser'],
+    scope: ['Limit the scope', 'Say what not to touch or add, so Claude does not slip in changes you did not ask for.', 'fix the email validation in the sign-up form, leave the rest of the form alone and do not add new features'],
+    stop: ['Say when to stop', 'Name the finish condition, so Claude does not carry the work further than needed.', 'fix the failing UserAuth test and stop once the whole test suite passes'],
+    length: ['Limit the answer length', 'Give the length in sentences or paragraphs, not in words.', 'explain what this module does in three sentences'],
+    unknown: ['Allow “I don’t know”', 'Permit admitting it does not know, so Claude does not guess when the data is missing.', 'if you cannot find this function in the repository, say it is not there instead of guessing'],
   },
   starters: ['Get to know the repository', 'Find where something happens', 'Fix a failing test', 'Write tests and run them', 'Review changes before committing'],
   principles: [

@@ -83,4 +83,6 @@ stronę `claude.ai`, która i tak jest na ekranie, i zapisuje ustawienia panelu
   i wtedy drzewko będzie puste albo niepełne, a paska postępu nie będzie.
 - Drzewko ma sens tam, gdzie Claude dotyka plików, czyli w Claude Code w przeglądarce.
   W zwykłym czacie zwykle nie ma czego zbierać.
-- Próg „zimnego cache" (5 minut, potem godzina) to moje założenie, nie odczyt.
+- Próg „zimnego cache" (5 minut, potem godzina) to założenie, nie odczyt, i **nie sprawdziłem
+  go dla czatu na `claude.ai`**. Mod `groundtron-combo` w Claude Code zakłada godzinę. Czas życia
+  cache może zależeć od planu i sposobu logowania, więc traktuj kolory miernika jako orientacyjne.
