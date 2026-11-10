@@ -24,6 +24,10 @@ CST_I18N.szl = {
     target: ['Pōdej cel, kery idzie zmierzyć', 'Przi wydajności abo pokryciu pōdej liczbã i prōg, coby było jasne, kej je zrobiōne.', 'zejdź z wielkościōm bundle pod 200KB i pokoż, co żeś wyrzuciōł'],
     artifact: ['Dołōncz artefakt', 'Wkleij bałōnd, log, zrzut ekranu abo wskoż plik bez @. Claude czyta zdrzōdło zamiast Twojigo ôpisu zdrzōdła.', 'czamu build sie sypie? @build.log'],
     format: ['Pedz, jak ma wyglōndać ôdpowiydź', 'Pōmiyń format, dugość abo ôdbiorcã, coby ôdpowiydź pasowała do tego, jak jã użyjesz.', 'wytōmacz logikã pōwtōrzaniŏ płatności jako zajtã HTML ze diagramym, potym ôtwōrz jã w przeglōndarce'],
+    scope: ['Ôgraniczej zakres', 'Pedz, czego niy ruszać ani niy dodować, coby Claude niy dołożōł niezamōwionych zmian.', 'popraw walidacyjõ e-maila w formularzu rejestracyji, niy zmiyniej reszty formularza i niy dodowej nowych funkcyji'],
+    stop: ['Pedz, kej przestać', 'Pōdej warōnek zakōńczynia, coby Claude niy ciōngnōł roboty dalij, jak trza.', 'naprow padajōncy test UserAuth i zatrzymej sie, kej cołki pakiet testōw przechodzi'],
+    length: ['Ôgraniczej dugość ôdpowiydzi', 'Pōdej dugość we zdaniach abo akapitach, a niy we słowach.', 'wytōmacz, co robi ten moduł, we trzech zdaniach'],
+    unknown: ['Pozwōl na „niy wiym”', 'Pozwōl prziznać sie do niewiedzy, coby Claude niy zgadywoł, kej brakuje danych.', 'jak niy znojdziesz tyj funkcyji w repozytorium, pedz, ze jyj niy ma, zamiast zgadywać'],
   },
   starters: ['Poznej repozytorium', 'Znojdź, kaj sie cosi dzieje', 'Naprow padajōncy test', 'Napisz testy i je uruchōm', 'Przejzdrzij zmiany przed commitym'],
   principles: [

@@ -24,6 +24,10 @@ CST_I18N.csb = {
     target: ['Pòdôj mierzalny cél', 'Przë wëdolnoscë abò pòkrëcym pòdôj lëczbã i prôg, żebë bëło jasno, czej je gòtowò.', 'zeńdzë z wiôlgòscą bundle pòd 200KB i pòkażë, co wëdarłeś'],
     artifact: ['Dołączë artefakt', 'Wklejë felé, log, zrzut ekranu abò pòkażë plik przez @. Claude czëtô zdrój zamiast Twòjégò òpisu zdroju.', 'czemù build sã sëpie? @build.log'],
     format: ['Rzeknij, jak ma wëzdrzec ùdpòwiésc', 'Nazwij format, dłëgòscã abò òdbiérnika, żebë ùdpòwiésc pasowa do tegò, jak ją ùżëjesz.', 'wëjasni lògikã pòwtôrzaniô płatnoscë jakno starnã HTML z diagramã, pózni òtemkni ją w przezérnikù'],
+    scope: ['Òbmeznij zakres', 'Rzeknij, czegò nie ruszac ani nie dodôwac, żebë Claude nie dorzucył niezamówionëch zmian.', 'pòprawi walidacëjã e-maila w fòrmùlarzu rejestracëji, nie zmieniwôj resztë fòrmùlarza i nie dodôwôj nowëch fùnkcëji'],
+    stop: ['Rzeknij, czedë przestac', 'Nazwij warënk zakùńczeniô, żebë Claude nie cygnął robòtë dali, jak trzeba.', 'naprawi padający test UserAuth i zatrzëmôj sã, czedë całi pakiet testów przechôdô'],
+    length: ['Òbmeznij dłëgòscã ùdpòwiésce', 'Pòdôj dłëgòscã w zdaniach abò akapitach, a nié w słowach.', 'wëjasni, co robi ten mòdul, w trzech zdaniach'],
+    unknown: ['Pòzwól na „nie wiém”', 'Zezwól na przëznanié sã do niewiédzë, żebë Claude nie zgadiwôł, czedë felëje dónëch.', 'eżlë nie nalézesz tej fùnkcëji w repòzytorium, rzeknij, że ji nie ma, zamiast zgadiwac'],
   },
   starters: ['Pòznôj repòzytorium', 'Nôdzë, dze sã cos dzeje', 'Naprawi padającë test', 'Napiszë testë i je ùruchòmi', 'Przezdrzë zmianë przed commitã'],
   principles: [

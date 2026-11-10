@@ -24,6 +24,10 @@ CST_I18N.gor = {
     target: ['Podoj cel, co idzie zmierzyć', 'Przy wydajności abo pokryciu podoj liczbe i próg, coby było wiadomo, kie to gotowe.', 'zejdź z wielkościom bundle pod 200KB i pokoz, cosik wyrzucił'],
     artifact: ['Dołącz artefakt', 'Wklej błąd, log, zrzut ekranu abo pokoz plik przez @. Claude cyto źródło, nie Twoje gadanie o źródle.', 'cemu build sie sypie? @build.log'],
     format: ['Powiedz, jako ma być odpowiedź', 'Powiedz, jaki format, jako długo abo dlo kogo, coby odpowiedź pasowała do tego, jak jom użyjesz.', 'wytłumacz logike ponawiania płatności jako strone HTML z diagramem, potem otwórz jom w przeglądarce'],
+    scope: ['Ogranicz zakres', 'Powiedz, cego nie ruszać ani nie dodować, coby Claude nie dorzucił niezamówionych zmian.', 'popraw walidacje e-maila w formularzu rejestracji, nie zmieniaj reszty formularza i nie dodowoj nowych funkcji'],
+    stop: ['Powiedz, kie przestać', 'Powiedz, kiedy skończyć, coby Claude nie ciągnął roboty dalej, jak trza.', 'napraw padajůncy test UserAuth i zatrzymej sie, kie cały pakiet testów przechodzi'],
+    length: ['Ogranicz długość odpowiedzi', 'Podoj długość w zdaniach abo akapitach, a nie w słowach.', 'wytłumacz, co robi ten moduł, w trzech zdaniach'],
+    unknown: ['Pozwól na „nie wiem”', 'Pozwól przyznać sie do niewiedzy, coby Claude nie zgadywoł, kie brakuje danych.', 'jak nie znojdziesz tej funkcji w repozytorium, powiedz, ze jej nie ma, zamiast zgadywać'],
   },
   starters: ['Poznoj repozytorium', 'Znojdź, hań sie cosi dzieje', 'Naprow test, co sie wywala', 'Napiś testy i je uruchom', 'Prejźrzyj zmiany przed commitem'],
   principles: [
