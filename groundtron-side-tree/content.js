@@ -82,27 +82,62 @@
     edit: 'edit', multiedit: 'edit', update: 'edit', notebookedit: 'edit',
   };
   const CALL_RE = /\b(Read|Write|Edit|MultiEdit|Update|Create|NotebookEdit|Glob|Grep|Search)\s*\(\s*([^)\n]{1,240}?)\s*\)/g;
-  // A path: either something with a separator, or a bare name with an extension.
-  const PATH_RE = /(?:[A-Za-z]:)?[\w.@~+-]*(?:[\\/][\w.@+-]+)+|\b[\w@+-]+(?:\.[\w+-]+)*\.[A-Za-z][A-Za-z0-9]{0,7}\b/;
-  // Endings that are almost always a domain or a version, not a file here.
-  const NOT_FILES = new Set(['com', 'org', 'net', 'ai', 'io', 'co', 'gov', 'edu', 'pl', 'html5']);
+  // The shapes worth looking at: something with a separator, or a bare name with
+  // an ending. Whether it is a file is decided in cleanPath, not here.
+  const PATH_RE = /(?:[A-Za-z]:)?[\w.@~+-]*(?:[\\/][\w.@+-]+)+|\b[\w@+-]+(?:\.[\w+-]+)*\.[A-Za-z0-9]{1,7}\b/;
+  // The only endings that make a name a file. A dotted word such as
+  // object.Property, a version or a domain is not on it, so it is never taken
+  // for a file, whatever it looks like.
+  const FILE_EXT = new Set((
+    'pdf docx doc xlsx xls pptx ppt odt ods odp rtf txt md csv tsv ' +
+    'js mjs cjs jsx ts tsx py rb go rs java kt swift c h cpp hpp cc cs php sh bash zsh ps1 bat cmd lua sql ' +
+    'html htm css scss sass less vue svelte ' +
+    'json yaml yml toml ini cfg conf env xml ipynb gradle properties ' +
+    'png jpg jpeg gif svg webp ico bmp zip tar gz tgz rar 7z'
+  ).split(' '));
 
-  function cleanPath(raw) {
+  // `loose` is for the argument of a tool call, which is a path by construction:
+  // there a path with a separator counts even without an ending (a folder).
+  // Anywhere else, in plain text, a file has a known ending.
+  function cleanPath(raw, loose) {
     if (!raw) return null;
     let p = raw.trim().replace(/^["'`<(]+|["'`>),.;:]+$/g, '');
     p = p.replace(/:\d+(?::\d+)?$/, ''); // file.ts:12:4
     if (!p || /^https?:\/\//i.test(p) || p.includes('://')) return null;
     p = p.replace(/\\/g, '/').replace(/\/{2,}/g, '/').replace(/^\.\//, '');
     if (p.length > 200 || p.length < 3) return null;
-    if (!/[A-Za-z]/.test(p)) return null;
+    if (!/[A-Za-z0-9]/.test(p)) return null;
     const name = p.split('/').pop() || '';
     const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
-    if (!p.includes('/')) {
-      // A bare word: only a real-looking extension makes it a file.
-      if (!ext || NOT_FILES.has(ext) || !/^[a-z][a-z0-9]{0,7}$/.test(ext)) return null;
-      if (/^\d+$/.test(name.split('.')[0])) return null;
+    if (FILE_EXT.has(ext) && name.length > ext.length + 1) return p;
+    return loose && p.includes('/') ? p : null;
+  }
+
+  // The path a tool call names. Read, Edit and the like carry it as their
+  // argument. Grep and Glob carry a pattern first, which is not a file, so only
+  // an explicit path: argument counts there.
+  function callPath(verb, arg) {
+    const v = verb.toLowerCase();
+    if (v === 'grep' || v === 'glob' || v === 'search') {
+      const named = /\bpath\s*[:=]\s*["'`]?([^"'`,)\s]+)/i.exec(arg);
+      return cleanPath(named && named[1], false); // a folder searched is not a file touched
     }
-    return p;
+    const hit = PATH_RE.exec(arg);
+    return cleanPath(hit && hit[0], true);
+  }
+
+  // The file names in plain text. A token that is part of something longer is
+  // skipped: a URL or an address (a ':', '/' or '@' right before it), or a call
+  // such as object.method( ... ) (a '(' right after it).
+  function mentionedPaths(text) {
+    const out = [];
+    for (const m of text.matchAll(new RegExp(PATH_RE.source, 'g'))) {
+      if (/[:/@\\]/.test(text[m.index - 1] || '') || text[m.index + m[0].length] === '(') continue;
+      const path = cleanPath(m[0], false);
+      if (path) out.push(path);
+      if (out.length >= 400) break;
+    }
+    return out;
   }
 
   function touch(path, kind, ts) {
@@ -134,8 +169,7 @@
     CALL_RE.lastIndex = 0;
     while ((m = CALL_RE.exec(text)) !== null) {
       const kind = VERB_KIND[m[1].toLowerCase()] || 'read';
-      const hit = PATH_RE.exec(m[2]);
-      const path = cleanPath(hit && hit[0]);
+      const path = callPath(m[1], m[2]);
       if (!path) continue;
       inCall.add(path);
       const f = files.get(path);
@@ -144,10 +178,8 @@
       if (touch(path, kind, isNew ? ts : (f ? f.lastTs : ts)) && isNew) found = true;
     }
     if (showMentions) {
-      const words = text.match(new RegExp(PATH_RE.source, 'g')) || [];
-      for (const w of words.slice(0, 400)) {
-        const path = cleanPath(w);
-        if (path && !inCall.has(path) && !files.has(path)) {
+      for (const path of mentionedPaths(text)) {
+        if (!inCall.has(path) && !files.has(path)) {
           touch(path, 'mention', 0);
           found = true;
         }

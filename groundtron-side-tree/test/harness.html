@@ -25,6 +25,13 @@
   <div class="msg"><div class="tool">Write(src/app/util/validate.ts)</div></div>
   <div class="msg"><div class="tool">Update(C:\Users\me\proj\README.md)</div></div>
   <div class="msg">Nie-pliki do odsiania: claude.ai, wersja 2.1.299, e.g. oraz https://example.com/a/b.html</div>
+  <!-- None of the next one is a file. window.__fp lists what the scanner took for one anyway. -->
+  <div class="msg" id="corpus-fp">Kod i terminy: object.Property, method.Call(), System.IO.File.Exists, Console.log, window.location.href, Math.max(1, 2), user.Name, v2.1.299, 3.14159, user@example.com, https://example.com/a/b.html, onet.pl, and/or, 1/2, TCP/IP, input/output, e.g. oraz i.e. a takze GET /api/users.</div>
+  <div class="msg"><div class="tool">Update(item.Id)</div></div>
+  <div class="msg"><div class="tool">Glob(**/*.ts)</div></div>
+  <div class="msg"><div class="tool">Grep(pattern: "foo.Bar", path: "src/app")</div></div>
+  <!-- All of the next one is a file. -->
+  <div class="msg" id="corpus-tp">Pliki w tekscie: docs/plan.md, ./scripts/run.sh, ../lib/util.py, C:\Users\me\proj\notes.txt, raport.pdf, Lab01.docx, zdjecie.jpg, data.json, main.cpp, util.h oraz <code>src/index.ts:12:4</code>.</div>
   <div id="stream"></div>
   <div id="composer" contenteditable="true">napraw to</div>
 </main>
@@ -37,7 +44,19 @@
   <button onclick="document.querySelector('#composer').innerText='dodaj limitowanie zapytan do @src/app/main.ts, zejdz ponizej 200KB, uruchom testy i pokaz wynik w tabeli'">wypelnij prompt</button>
 </div>
 <aside id="files-region" role="region" aria-label="Files" aria-hidden="false" style="position:fixed;right:0;top:0;bottom:0;width:342px;padding:16px;background:#262524;overflow:auto"><div style="display:flex;flex-direction:column;gap:20px"><div class="flex flex-col gap-3"><div style="display:flex;justify-content:space-between"><h3 style="margin:0;font-size:14px;font-weight:500">Artifacts</h3><button onclick="log('download all')">Download all</button></div><div class="flex flex-col gap-2"><div data-file-row-card=""><span data-testid="files-panel-card-open" role="button" aria-label="View Lab02 sprawozdanie" onclick="log('open Lab02 sprawozdanie')">Lab02 sprawozdanie</span> <button aria-label="Download Lab02 sprawozdanie" onclick="log('download Lab02')">dl</button></div><div data-file-row-card=""><span data-testid="files-panel-card-open" role="button" aria-label="View validate" onclick="log('open validate')">validate</span> <button aria-label="Download validate" onclick="log('download validate')">dl</button></div></div></div><div class="flex flex-col gap-3"><div><h3 style="margin:0;font-size:14px;font-weight:500">Content</h3></div><div><div data-testid="file-thumbnail"><button onclick="log('open thumb')"><img alt="19.10.2026 Lab01.pdf" width="60" height="40"></button></div></div></div></div></aside>
-<script>window.logs=[];function log(x){window.logs.push(x)}</script>
+<script>window.logs=[];function log(x){window.logs.push(x)}
+// In the console: cstCheck() lists real files the scanner missed and non-files it took for one.
+window.cstCheck = function () {
+  const rows = [...document.querySelectorAll('#cst-root .cst-file')].filter(r => r.dataset.kind !== 'page').map(r => r.title.split('\n')[0]);
+  const real = ['docs/plan.md', 'scripts/run.sh', '../lib/util.py', 'C:/Users/me/proj/notes.txt', 'raport.pdf', 'Lab01.docx', 'zdjecie.jpg', 'data.json', 'main.cpp', 'util.h', 'src/index.ts', 'src/app/main.ts', 'src/app/util/paths.ts', 'C:/Users/me/proj/README.md'];
+  const notFiles = ['Property', 'Call', 'Exists', 'Console', 'location', 'Math', 'user.Name', '2.1.299', '3.14', 'example.com', 'onet', 'and/or', '1/2', 'TCP', 'input/output', 'e.g', 'i.e', 'api/users', 'item.Id', '**', 'foo.Bar', 'claude.ai', 'user@'];
+  return {
+    missing: real.filter(x => !rows.includes(x)),
+    // 'src/app' is a folder: it must not appear as a row of its own.
+    falsePositives: rows.filter(r => r === 'src/app' || notFiles.some(w => r.includes(w))),
+    rows: rows.length,
+  };
+};</script>
 <script>
 function tasks(n) {
   const names = ['Przeczytaj kod', 'Napisz poprawke', 'Uruchom testy', 'Opisz zmiany'];
